@@ -2,7 +2,7 @@
 <html lang="de-CH">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#05070A" />
   <meta name="color-scheme" content="dark" />
   <title>LIMITLESS – KI-Marketing für lokale Betriebe in Zürich</title>
@@ -22,19 +22,34 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="__SITE_URL__/og-image.jpg" />
 
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="preload" as="image" href="/hero/poster.webp" type="image/webp" />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/vendor/lenis.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/journey.css" />
+  <link rel="preload" as="image" href="/poster.webp" type="image/webp" />
   <style>html, body { background: #05070A; }</style>
-</head>
-<body>
+</head><body>
   <a class="skip-link" href="#problem">Zum Inhalt springen</a>
+  <!-- Fondo fijo: el vídeo en fotogramas detrás de toda la página -->
+  <div class="stage" id="stage" aria-hidden="true">
+    <canvas id="bg-canvas"></canvas>
+    <div class="stage-mist" id="mist"></div>
+    <div class="stage-vignette"></div>
+    <div class="stage-grain"></div>
+  </div>
+  <div class="wipe" id="wipe" aria-hidden="true"></div>
   <div class="glow" id="glow" aria-hidden="true"></div>
+  <div class="cursor" id="cursor" aria-hidden="true"><span class="cursor-ring"><em id="cursor-label"></em></span><span class="cursor-dot"></span></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <div id="preloader" role="status" aria-live="polite">
     <div class="preloader-inner">
+      <span class="preloader-mark" aria-hidden="true"></span>
       <p class="preloader-kicker">Zürich</p>
       <p class="preloader-title">Die Reise wird vorbereitet</p>
       <div class="preloader-bar" aria-hidden="true"><span id="preloader-fill"></span></div>
@@ -44,10 +59,16 @@
 
   <header class="nav" id="nav">
     <a class="logo" href="#top" aria-label="LIMITLESS – zur Startseite">
-      <span class="logo-mark" aria-hidden="true">∞</span>
+      <span class="logo-mark" id="logo-mark" aria-hidden="true"></span>
       <span class="logo-word">LIMITLESS</span>
     </a>
-    <button type="button" class="burger" id="burger" aria-label="Menü öffnen" aria-expanded="false" aria-controls="menu"><span></span><span></span></button>
+    <div class="nav-right">
+      <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="false" aria-label="Ton einschalten">
+        <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span class="sound-label" id="sound-label">Ton an</span>
+      </button>
+      <button type="button" class="burger" id="burger" aria-label="Menü öffnen" aria-expanded="false" aria-controls="menu"><span></span><span></span></button>
+    </div>
     <nav id="menu" aria-label="Hauptnavigation">
       <a href="#leistungen">Leistungen</a>
       <a href="#ablauf">Ablauf</a>
@@ -58,55 +79,44 @@
     </nav>
   </header>
 
-  <main id="top">
-    <section id="hero-sequence" aria-label="Visuelle Reise: vom Problem zur Lösung">
-      <div class="hero-sticky">
-        <canvas id="hero-canvas" aria-hidden="true"></canvas>
-        <img id="hero-still" class="hero-still" src="/hero/still.webp" alt="Astronaut fällt mit grünen Lichtspuren auf die Erde zu." />
-        <div class="hero-vignette" aria-hidden="true"></div>
-        <div class="hero-grain" aria-hidden="true"></div>
+  <!-- Kapitel-HUD (Desktop): zeigt, wo man in der Reise ist -->
+  <aside class="hud" id="hud" aria-label="Kapitel der Reise">
+    <p class="hud-time"><span>T+</span><b id="hud-t">00.0</b><span>s</span></p>
+    <ol>
+      <li><a href="#problem" data-ch="0"><i></i><span>Boden</span></a></li>
+      <li><a href="#sprung" data-ch="1"><i></i><span>Sprung</span></a></li>
+      <li><a href="#leistungen" data-ch="2"><i></i><span>Orbit</span></a></li>
+      <li><a href="#ablauf" data-ch="3"><i></i><span>Visier</span></a></li>
+      <li><a href="#preise" data-ch="4"><i></i><span>Sturzflug</span></a></li>
+      <li><a href="#kontakt" data-ch="5"><i></i><span>Nebel</span></a></li>
+    </ol>
+  </aside>
 
+  <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
+
+  <main id="top">
+    <section id="hero-sequence" aria-label="Visuelle Reise der Agentur">
+      <img id="hero-still" class="hero-still" src="/still.webp" alt="Astronaut fällt mit grünen Lichtspuren auf die Erde zu." />
+      <div class="hero-sticky">
         <div class="hero-overlays">
-          <p class="scroll-hint" data-start="0" data-end="0.055" data-fade="0.02">
+          <p class="scroll-hint" data-start="0" data-end="0.16" data-fade="0.06">
             <span>Scrollen</span>
             <span class="scroll-hint-line" aria-hidden="true"></span>
           </p>
-
-          <!-- 0.05–0.22 · rissiger Boden, Gehen (t ≈ 0.8–3.6 s) -->
-          <article class="hero-copy copy-left" data-start="0.05" data-end="0.22" data-fade="0.03">
+          <!-- Beat: Intro – der Astronaut geht über rissigen Boden (t ≈ 0–1,6 s) -->
+          <article class="hero-copy copy-left" data-start="0" data-end="0.92" data-fade="0.1">
             <p class="kicker">Das Problem</p>
-            <h1>Ihr Betrieb verliert Kundschaft durch Fehler, die Sie nicht sehen.</h1>
+            <h1 data-split="words" data-intro>Ihr Betrieb verliert Kundschaft durch Fehler, die Sie nicht sehen.</h1>
             <p class="lede">Digital-Check für lokale Betriebe in&nbsp;Zürich.</p>
-          </article>
-
-          <!-- 0.31–0.39 · Absprung, vor dem weissen Blitz (t ≈ 5.2–6.5 s) -->
-          <article class="hero-copy copy-low" data-start="0.31" data-end="0.39" data-fade="0.025">
-            <p class="kicker">Der Sprung</p>
-            <h2>Wir durchqueren das Problem.</h2>
-          </article>
-
-          <!-- 0.58–0.75 · Nahaufnahme Visier (t ≈ 9.7–12.5 s) -->
-          <article class="hero-copy copy-bottom" data-start="0.58" data-end="0.75" data-fade="0.03">
-            <p class="kicker">Die Lösung</p>
-            <h2>Wir finden, was Ihren Betrieb bremst – und digitalisieren es.</h2>
-          </article>
-
-          <!-- 0.84–1.00 · durch die Wolken, grüner Nebel (t ≈ 14.0–16.7 s) -->
-          <article class="hero-copy copy-bottom copy-cta" data-start="0.84" data-end="1" data-fade="0.03">
-            <p class="kicker">Zürich</p>
-            <h2>Bereit zu sehen, was nicht funktioniert?</h2>
-            <a class="btn" href="#kontakt">Digital-Check anfordern</a>
           </article>
         </div>
       </div>
     </section>
 
-    <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
-
     <section class="sec" id="problem">
       <div class="wrap">
         <p class="kicker reveal">Das Problem</p>
-        <h2 class="reveal">Gutes Geschäft. Unsichtbares Schaufenster.</h2>
+        <h2 data-split="words">Gutes Geschäft. Unsichtbares Schaufenster.</h2>
         <div class="stats">
           <div class="stat reveal"><b><span data-count="77">0</span> %</b><span>möchten online buchen</span><i>localsearch &amp; HSLU 2025</i></div>
           <div class="stat reveal"><b><span data-count="3">0</span> %</b><span>der KMU bieten es an</span><i>localsearch &amp; HSLU 2025</i></div>
@@ -127,14 +137,26 @@
             <li data-q="4"><span>Haben Sie einen eigenen Kanal (WhatsApp oder Newsletter)?</span><div class="yn"><button type="button" data-a="1">Ja</button><button type="button" data-a="0">Nein</button></div></li>
           </ol>
           <div class="quiz-result" id="quiz-result" aria-live="polite">
-            <div class="ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" class="ring-bg"/><circle cx="60" cy="60" r="52" class="ring-fg" id="ring-fg"/></svg><b id="quiz-num">–</b></div>
+            <div class="ring" id="ring"><canvas class="burst" id="quiz-burst" aria-hidden="true"></canvas><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" class="ring-bg"/><circle cx="60" cy="60" r="52" class="ring-fg" id="ring-fg"/></svg><b id="quiz-num">–</b></div>
             <div>
+              <p class="quiz-steps" id="quiz-steps" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></p>
+              <p class="quiz-tier" id="quiz-tier" hidden></p>
               <p class="quiz-label" id="quiz-label">Beantworten Sie die 5 Fragen.</p>
               <a class="btn magnetic" href="#kontakt">Vollen Digital-Check anfordern</a>
               <p class="tiny">5 von 15 Punkten unseres Checks. Der volle Check ist kostenlos.</p>
+              <button type="button" class="link-btn" id="quiz-reset" hidden>Nochmals testen</button>
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- Zwischenspiel: Sprung + Blitz (t ≈ 3,4–6,75 s). Der Blitz wischt in «Leistungen» über. -->
+    <section class="gap gap-sprung" id="sprung" aria-label="Der Sprung">
+      <div class="gap-sticky">
+        <p class="kicker">Der Sprung</p>
+        <h2 class="mega" data-split="chars" data-scrub>Wir durchqueren das Problem.</h2>
+        <div class="countdown" id="countdown" aria-hidden="true"><span>3</span><span>2</span><span>1</span><span class="go">Los</span></div>
       </div>
     </section>
 
@@ -142,8 +164,8 @@
       <div class="hs-pin">
         <div class="wrap hs-head">
           <p class="kicker reveal">Leistungen</p>
-          <h2 class="reveal">Mehr Buchungen. Weniger Aufwand.</h2>
-          <p class="hint">Karten antippen für Details <span aria-hidden="true">→</span></p>
+          <h2 data-split="words">Mehr Buchungen. Weniger Aufwand.</h2>
+          <p class="hint">Karten antippen für Details →</p>
         </div>
         <div class="hs-track" id="hs-track">
           <article class="tcard" tabindex="0"><div class="tcard-in"><span class="ico"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.3-7-12a7 7 0 0 1 14 0c0 5.7-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg></span><h3>Google &amp; Bewertungen</h3><p class="one">Ihr neues Schaufenster.</p><p class="more">Profil vervollständigen, Daten in allen Verzeichnissen korrigieren, jede Bewertung innert 48 Stunden beantworten – in Ihrem Ton.</p></div></article>
@@ -156,10 +178,22 @@
       </div>
     </section>
 
+    <!-- Zwischenspiel: Erde → Visier (t ≈ 8,6–9,7 s) -->
+    <section class="gap gap-loesung" id="loesung" aria-label="Die Lösung">
+      <div class="gap-sticky">
+        <div class="reticle" id="reticle" aria-hidden="true">
+          <svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="84" /><circle cx="100" cy="100" r="62" class="r2" /><path d="M100 4v26M100 170v26M4 100h26M170 100h26" /></svg>
+          <span class="reticle-label">Scan · 15 Prüfpunkte</span>
+        </div>
+        <p class="kicker">Die Lösung</p>
+        <h2 class="mega mega-sm" data-split="words" data-scrub>Wir finden, was Ihren Betrieb bremst – und digitalisieren es.</h2>
+      </div>
+    </section>
+
     <section class="sec" id="ablauf">
       <div class="wrap">
         <p class="kicker reveal">Ablauf</p>
-        <h2 class="reveal">In 4 Schritten zum Resultat.</h2>
+        <h2 data-split="words">In 4 Schritten zum Resultat.</h2>
         <div class="timeline" id="timeline">
           <div class="tl-line"><span id="tl-fill"></span></div>
           <div class="tl-step"><b>01</b><h3>Gratis Digital-Check</h3><p>15 Punkte, 1 Seite, 3-Minuten-Video.</p></div>
@@ -173,7 +207,7 @@
     <section class="sec sec-alt" id="referenz">
       <div class="wrap">
         <p class="kicker reveal">Beispiel-Audit</p>
-        <h2 class="reveal">Historisches Restaurant im Limmattal. 4,4 Sterne, Schaufenster von 2015.</h2>
+        <h2 data-split="words">Historisches Restaurant im Limmattal. 4,4 Sterne, Schaufenster von 2015.</h2>
         <div class="ba reveal" id="ba">
           <div class="ba-side ba-before">
             <p class="ba-tag">Vorher · Diagnose</p>
@@ -187,13 +221,22 @@
           <input type="range" min="0" max="100" value="50" id="ba-range" aria-label="Vorher-Nachher-Regler" />
         </div>
         <p class="tiny reveal">Anonymisiertes Audit bei einem Interessenten. «Nachher» zeigt den Plan, keine gemessenen Resultate.</p>
+        <!-- PLATZHALTER-SLOTS: erst mit echten Inhalten füllen. Nichts erfinden. Vor dem Livegang ersetzen oder entfernen. -->
+        <div class="slots reveal" data-placeholder="referenzen">
+          <p class="slot-kicker">Platzhalter · Bald hier</p>
+          <div class="slot-grid">
+            <figure class="slot slot-case"><span class="slot-ico" aria-hidden="true">＋</span><figcaption>[PLATZHALTER: Erste Fallstudie mit gemessenen Resultaten]</figcaption></figure>
+            <figure class="slot slot-quote"><span class="slot-ico" aria-hidden="true">“</span><figcaption>[PLATZHALTER: Kundenstimme oder Kundenvideo]</figcaption></figure>
+            <div class="slot slot-logos"><span>[LOGO]</span><span>[LOGO]</span><span>[LOGO]</span><span>[LOGO]</span></div>
+          </div>
+        </div>
       </div>
     </section>
 
     <section class="sec" id="preise">
       <div class="wrap">
         <p class="kicker reveal">Rechner</p>
-        <h2 class="reveal">Was bringt Ihnen das pro Monat?</h2>
+        <h2 data-split="words">Was bringt Ihnen das pro Monat?</h2>
         <div class="calc reveal" id="calc">
           <div class="calc-in">
             <div class="chips chips-sm" id="calc-sector" role="group" aria-label="Branche wählen">
@@ -226,7 +269,7 @@
         </div>
 
         <p class="kicker reveal" style="margin-top:5rem">Pakete &amp; Preise</p>
-        <h2 class="reveal">3 Monate fix, dann monatlich kündbar.</h2>
+        <h2 data-split="words">3 Monate fix, dann monatlich kündbar.</h2>
         <div class="seg seg-center reveal" id="price-mode" role="group" aria-label="Preisansicht"><button type="button" class="is-on" data-m="month">Monatlich</button><button type="button" data-m="setup">Einrichtung</button></div>
         <div class="plans">
           <article class="plan reveal tilt" data-plan="0"><h3>Digital-Check</h3><p class="price" data-month="CHF 0" data-setup="CHF 0">CHF 0</p><p class="one">15 Punkte, 1 Seite, Video, 3 Sofortmassnahmen.</p></article>
@@ -253,7 +296,7 @@
     <section class="sec sec-alt" id="branchen">
       <div class="wrap">
         <p class="kicker reveal">Branchen</p>
-        <h2 class="reveal">Ihre Branche. Ihre Lecks.</h2>
+        <h2 data-split="words">Ihre Branche. Ihre Lecks.</h2>
         <div class="chips reveal" id="sector-chips" role="group" aria-label="Branche wählen">
           <button type="button" class="is-on" data-i="0">Gastro</button><button type="button" data-i="1">Coiffeur &amp; Beauty</button><button type="button" data-i="2">Fitness</button><button type="button" data-i="3">Läden</button><button type="button" data-i="4">Praxen</button><button type="button" data-i="5">Handwerk</button><button type="button" data-i="6">Immobilien</button><button type="button" data-i="7">Hotels</button>
         </div>
@@ -264,7 +307,7 @@
     <section class="sec" id="faq">
       <div class="wrap wrap-narrow">
         <p class="kicker reveal">FAQ</p>
-        <h2 class="reveal">Kurz gefragt.</h2>
+        <h2 data-split="words">Kurz gefragt.</h2>
         <div class="faq">
           <details class="reveal"><summary>Keine Zeit für Social Media?</summary><p>30 Minuten Dreh pro Monat. Den Rest machen wir.</p></details>
           <details class="reveal"><summary>Ist das teuer?</summary><p>Rechnen Sie es oben nach. Klassische Social-Media-Agenturen kosten CHF 800–3'000 pro Monat.</p></details>
@@ -277,10 +320,19 @@
       </div>
     </section>
 
+    <!-- Zwischenspiel: Wolken → grüner Nebel (t ≈ 15,7–16,3 s) -->
+    <section class="gap gap-finale" id="finale" aria-label="Bereit?">
+      <div class="gap-sticky">
+        <p class="kicker">Zürich</p>
+        <h2 class="mega mega-sm" data-split="chars" data-scrub>Bereit zu sehen, was nicht funktioniert?</h2>
+        <a class="btn magnetic" href="#kontakt">Digital-Check anfordern</a>
+      </div>
+    </section>
+
     <section class="sec sec-cta" id="kontakt">
       <div class="wrap wrap-narrow center">
         <p class="kicker reveal">Kontakt</p>
-        <h2 class="reveal">Gratis Digital-Check in 48 Stunden.</h2>
+        <h2 data-split="words">Gratis Digital-Check in 48 Stunden.</h2>
         <div class="cta-row reveal">
           <a class="btn magnetic" href="#anfrage">Digital-Check anfordern</a>
           <a class="btn btn-ghost magnetic" id="cta-booking" href="#" target="_blank" rel="noopener">15-Minuten-Gespräch buchen</a>
@@ -323,12 +375,18 @@
   </main>
   <footer class="foot">
     <div class="wrap foot-in">
-      <span class="logo"><span class="logo-mark" aria-hidden="true">∞</span><span class="logo-word">LIMITLESS</span></span>
+      <span class="logo"><span class="logo-mark" aria-hidden="true"></span><span class="logo-word">LIMITLESS</span></span>
       <span>KI-Marketing für lokale Betriebe in Zürich · © <span id="year"></span></span>
       <span class="foot-links"><a id="link-legal" href="#">Impressum</a> <a id="link-privacy" href="#">Datenschutz</a></span>
     </div>
   </footer>
 
+  <script src="/vendor/gsap.min.js"></script>
+  <script src="/vendor/ScrollTrigger.min.js"></script>
+  <script src="/vendor/lenis.min.js"></script>
+  <script src="/js/sound.js"></script>
+  <script src="/js/sections.js"></script>
+  <script src="/js/journey.js"></script>
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>

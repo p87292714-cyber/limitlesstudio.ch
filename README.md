@@ -1,8 +1,8 @@
-# LIMITLESS — Web de la agencia (Zúrich, alemán suizo)
+# LIMITLESS — Web de la agencia (Zúrich, alemán suizo) · versión «Reise»
 
-Landing de una página para **LIMITLESS**, KI-Marketing für lokale Betriebe in Zürich. Todo el contenido está en alemán suizo (`lang="de-CH"`, «ss» en vez de «ß», CHF con apóstrofo, tratamiento de «Sie»).
+Página única para **LIMITLESS**, KI-Marketing für lokale Betriebe in Zürich. Todo el contenido está en alemán suizo (`lang="de-CH"`, «ss» en vez de «ß», CHF con apóstrofo, trato de «Sie»).
 
-La portada es un **hero de recorrido**: 240 fotogramas WebP pintados en un `<canvas>` según el scroll (GSAP ScrollTrigger + Lenis). El brief original del hero está en [`docs/HERO_PROMPT_ORIGINAL.md`](docs/HERO_PROMPT_ORIGINAL.md).
+El vídeo del astronauta (16,6 s en fotogramas WebP) está **fijo detrás de toda la página** y avanza con el scroll de principio a fin. Las secciones van en paneles de cristal oscuro y hay interludios a pantalla completa. El brief original está en [`docs/HERO_PROMPT_ORIGINAL.md`](docs/HERO_PROMPT_ORIGINAL.md): ahí están el mapeo scroll→tiempo, el sonido, el easter egg, etc.
 
 ## Arrancar en local
 
@@ -15,57 +15,54 @@ npm run build      # genera dist/
 npm run preview    # sirve dist/ en local
 ```
 
-En desarrollo, `?p=0.66` (u otro valor entre 0 y 1) salta a un punto concreto del recorrido. En producción se ignora.
+`?p=0.5` abre la página en ese punto del scroll (0–1); `?fine=1` fuerza el cursor y el HUD de escritorio. Solo sirven para revisar.
 
 ## Estructura
 
+El prototipo «Reise» está integrado **sin reconstruirlo**: sus archivos están en `public/` y se cargan como scripts clásicos. Encima van las aportaciones de LIMITLESS, como módulo de Vite en `src/`.
+
 | Archivo | Qué contiene |
 |---|---|
-| `index.html` | Todo el contenido (hero, Problem, Leistungen, Ablauf, Referenz, Preise, Branchen, FAQ, Kontakt) y SEO. |
-| `src/style.css` | Estilos del prototipo (casi negro `#05070A`, lima `#B6FF3B`, Syne + Outfit) y del formulario. |
-| `src/hero.js` | Hero de fotogramas: precarga (8 en paralelo), canvas *cover*, beats de texto por `data-start` / `data-end`. |
-| `src/sections.js` | Secciones interactivas: Mini-Digital-Check (5 preguntas), tarjetas de Leistungen en scroll horizontal fijado (≥768 px) o deslizables (móvil), línea de tiempo, slider Vorher/Nachher, calculadora (`Umsatz = Kunden × Bon × Besuche`; `Netto = Umsatz × Marge − Paket`), toggle Monatlich/Einrichtung, pestañas de Branchen, FAQ de una en una, menú hamburguesa (<900 px), barra de progreso, brillo y botones magnéticos (solo escritorio). Todo se desactiva con `prefers-reduced-motion`. |
-| `src/contact.js` | Formulario y datos de contacto, que se configuran con variables de entorno. |
-| `public/hero/frames/desktop/` | 240 fotogramas de 1920 px (unos 20,5 MB). |
-| `public/hero/frames/mobile/` | 240 fotogramas de 1280 px (unos 14,2 MB). Se usan con un ancho de 767 px o menos. **Nunca se cargan las dos tandas.** |
-| `public/hero/poster.webp`, `still.webp` | Primer fotograma y fotograma fijo para `prefers-reduced-motion`. |
-| `public/og-image.jpg` | Imagen social 1200×630 sacada del póster. |
+| `index.html` | Markup del prototipo + marca LIMITLESS, SEO, enlace «saltar al contenido» y formulario en Kontakt. |
+| `public/js/journey.js` | Fondo de fotogramas, mapeo scroll→tiempo (`ANCHORS`), Lenis, HUD, destello y niebla. |
+| `public/js/sections.js` | Quiz, calculadora, slider, pestañas, split text, cursor propio, easter egg y pin de Leistungen. |
+| `public/js/sound.js` | Sonido (Web Audio). Apagado por defecto; el audio solo se descarga al activarlo. |
+| `public/css/style.css`, `journey.css` | Estilos del prototipo. |
+| `public/frames/desktop/` | 400 fotogramas 1920×1080 a 24 fps (unos 34 MB). |
+| `public/frames/mobile/` | 200 fotogramas 1280×720 a 12 fps (unos 9 MB). Se usan con un ancho de 767 px o menos; **nunca se cargan las dos tandas**. |
+| `public/audio/` | Banda sonora en m4a, ogg y mp3. |
+| `public/vendor/` | gsap 3.12.5, ScrollTrigger y lenis 1.1.20, servidos desde el propio dominio (sin CDN). |
+| `src/contact.js`, `src/form.css` | Formulario y datos de contacto, configurables con variables de entorno. |
+| `src/enhance.js` | Accesibilidad añadida: `aria-pressed` en las pastillas, tarjetas con teclado, Escape cierra el menú y foco tras saltar a un ancla. |
 | `server/lead.js`, `api/lead.js`, `netlify/functions/lead.mjs` | Endpoint seguro `/api/lead` para Vercel y Netlify. |
 
-### Tiempos de los textos del hero
+**Cambios mínimos hechos en los archivos del prototipo:**
+- `journey.js`: tope de 1,5 s a `decode()` en la precarga. En pestañas en segundo plano se quedaba esperando y el preloader no terminaba.
+- `sound.js`: `localStorage` dentro de `try/catch`, para navegadores que lo bloquean.
 
-| Progreso | Imagen | Texto |
-|---|---|---|
-| 0,00–0,055 | Arranque | Scrollen |
-| 0,05–0,22 | Suelo agrietado | Das Problem |
-| 0,31–0,39 | Despegue | Der Sprung |
-| 0,58–0,75 | Visor con la Tierra | Die Lösung |
-| 0,84–1,00 | Nubes y niebla verde | Zürich + CTA |
-
-Si se cambian los fotogramas o se recorta el vídeo master, hay que **recalcular** estos valores.
+**Orden de scripts (no cambiarlo):** gsap → ScrollTrigger → lenis → `sound.js` → `sections.js` → `journey.js`.
 
 ## Formulario de contacto
 
 - **Modo demostración** (por defecto): valida los campos, muestra un aviso y **no envía nada**.
-- **Email** (`VITE_CONTACT_EMAIL`): abre la app de correo del visitante con la solicitud ya redactada.
+- **Email** (`VITE_CONTACT_EMAIL`): abre la app de correo del visitante con la solicitud redactada.
 - **Endpoint** (`VITE_LEAD_ENDPOINT=/api/lead`, recomendado): la función del servidor hace lo siguiente:
   - valida los campos y el consentimiento;
   - descarta los envíos de bots;
   - comprueba el origen si se configura `ALLOWED_ORIGIN`;
-  - reenvía el lead a `LEAD_FORWARD_URL` (por ejemplo, n8n) con el secreto `LEAD_FORWARD_SECRET` en la cabecera `X-Limitless-Secret`.
+  - reenvía el lead a `LEAD_FORWARD_URL` (por ejemplo, n8n) con `LEAD_FORWARD_SECRET` en la cabecera `X-Limitless-Secret`.
 
   Los secretos nunca llegan al navegador.
 
-El botón «15-Minuten-Gespräch buchen», los datos de contacto y los enlaces a Impressum y Datenschutz **solo se muestran si están configurados** (ver `.env.example`).
+El botón de reserva, los datos de contacto y los enlaces a Impressum y Datenschutz **solo se muestran si están configurados** (ver `.env.example`).
 
 ## Despliegue (Vercel o Netlify)
 
-1. Sube el proyecto a un repositorio Git e impórtalo. Vercel detecta Vite automáticamente; en Netlify, `netlify.toml` ya define el build, la carpeta `dist` y las funciones.
-2. Añade las variables de `.env.example` en el panel de la plataforma. Las `VITE_` se leen al compilar, así que hay que volver a desplegar tras cambiarlas.
-3. `vercel.json` y `netlify.toml` ya sirven `/hero/*` y `/assets/*` con caché inmutable de un año.
-4. Envía una solicitud de prueba y comprueba que llega a n8n o al CRM.
+1. Sube el proyecto a GitHub e impórtalo. Vercel detecta Vite automáticamente; en Netlify, `netlify.toml` ya define el build, la carpeta `dist` y las funciones.
+2. Añade las variables de `.env.example`. Las `VITE_` se leen al compilar, así que hay que volver a desplegar tras cambiarlas.
+3. `/frames/*`, `/audio/*`, `/vendor/*` y `/assets/*` se sirven con caché inmutable de un año.
 
-**Peso:** la home descarga unos 21 MB en escritorio y 14 MB en móvil, por diseño. El preloader cubre la espera. Para aligerarla, reduce a unos 180 fotogramas o baja la calidad a 70, y recalcula los tiempos de los textos.
+**Peso:** antes de mostrar la página solo se esperan 16 fotogramas (unos 2,3 MB en escritorio y 1,1 MB en móvil). El resto se carga en segundo plano: unos 34 MB en total en escritorio y 9 MB en móvil.
 
 ## Checklist antes del lanzamiento
 
@@ -73,10 +70,9 @@ El botón «15-Minuten-Gespräch buchen», los datos de contacto y los enlaces a
 - [ ] Email, teléfono, WhatsApp y enlace de reserva (`VITE_CONTACT_*`, `VITE_WHATSAPP_URL`, `VITE_BOOKING_URL`).
 - [ ] **Impressum y Datenschutzerklärung** publicados (obligatorios en Suiza, nDSG) y enlazados con `VITE_LEGAL_URL` / `VITE_PRIVACY_URL`.
 - [ ] Destino real del formulario probado de principio a fin.
-- [ ] Revisar las fuentes de las cifras (localsearch & HSLU 2025, IGEM-Digimonitor 2025) antes de publicarlas.
-- [ ] El Beispiel-Audit sigue anonimizado y sin resultados inventados («Nachher» es el plan, no resultados).
-- [ ] Valores iniciales de la calculadora (15 clientes, CHF 40, 1 visita, 60 %, Growth): con ellos el neto sale negativo (−CHF 330). Son los del documento de la agencia; decide si los mantienes.
-- [ ] Google Fonts se carga desde Google: valora alojarlas localmente por privacidad.
-- [ ] Probar en iPhone y Android reales, también con «reducir movimiento» activado.
-
-La versión anterior (React, en español) quedó guardada en `../_version-anterior-react/`.
+- [ ] **Bloque de referencias en «Beispiel-Audit»** (`.slots[data-placeholder="referenzen"]`): ahora muestra `[PLATZHALTER …]` y `[LOGO]`. Sustitúyelo por contenido real o bórralo.
+- [ ] Precios: son recomendados, no validados.
+- [ ] Valores iniciales de la calculadora: con ellos el neto sale **−CHF 330**. Decide si los mantienes.
+- [ ] Logo: el cuadrado lima es provisional (el easter egg se activa con 5 clics en él).
+- [ ] Probar en un iPhone real (Safari) y en un Android de gama media, también con «reducir movimiento» y con el sonido activado.
+- [ ] Google Fonts (Archivo, Outfit) se carga desde Google: valora alojarlas localmente por privacidad.

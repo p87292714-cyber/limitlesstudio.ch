@@ -1,111 +1,103 @@
-# Prompt para integrar el hero de recorrido (pegar en Claude)
+# Prompt para integrar la web «Reise» (pegar en Claude)
 
-Copia todo lo que va debajo de la línea e inclúyelo en Claude junto con la carpeta `scroll-hero` (o su ruta en el repo). No hace falta rehacer el hero: hay que integrarlo.
+Copia todo lo que va debajo de la línea y pégalo en Claude junto con la carpeta `scroll-hero` (o su ruta en el repo). La web ya está terminada y probada: **intégrala, no la reconstruyas**, no sustituyas los fotogramas por un `<video>` y no cambies los textos.
 
 ---
 
-Estoy montando la web de mi agencia digital, pensada para negocios locales en Zúrich. **Todo el contenido de la web está en alemán suizo (`<html lang="de-CH">`, «ss» en vez de «ß», precios en CHF con apóstrofo, tratamiento de «Sie»). No lo traduzcas a otro idioma ni cambies ese tono.** Ya tengo un hero de recorrido sincronizado con el scroll, terminado y probado. Quiero que lo integres en la web existente. No lo reconstruyas desde cero ni sustituyas los fotogramas por un `<video>`.
+Estoy montando la web de mi agencia de marketing con IA para negocios locales en Zúrich. **Todo el contenido está en alemán suizo (`<html lang="de-CH">`, «ss» en vez de «ß», precios en CHF con apóstrofo, trato de «Sie»). No lo traduzcas ni cambies el tono.** Todas las cifras de la web tienen fuente (localsearch & HSLU 2025, IGEM 2025) o salen de mi documento de agencia. **No inventes cifras, clientes, logos, testimonios ni resultados.** Estoy empezando el negocio: los huecos para contenido real están marcados como placeholder y se quedan así hasta que yo tenga el material.
 
-La historia del hero: un astronauta cruza el problema (suelo agrietado) y llega a la solución (la Tierra, el visor, las nubes). Paleta: casi negro `#05070A` y lima neón `#B6FF3B`. Tipografías del prototipo: Syne (titulares) y Outfit (UI). Si la web ya tiene una tipografía de marca, úsala, pero mantén el contraste y el lima.
+## Qué es
+
+Una sola página. El vídeo del astronauta (16,6 s, en fotogramas WebP) está **fijo de fondo detrás de toda la página** y avanza con el scroll de principio a fin. Cada sección enseña su momento de la historia. El contenido va en paneles de cristal oscuro (`backdrop-filter: blur`). Cuando hay texto en pantalla, el fondo se oscurece y se desenfoca un poco; en los «Zwischenspiele» (interludios) se ve limpio. Paleta: `#05070A` y lima `#B6FF3B`. Tipografías: **Archivo** (titulares, ancho 112 %, peso 800–900) y **Outfit** (texto).
 
 ## Carpeta
 
 ```
 scroll-hero/
   index.html
-  css/style.css
-  js/hero.js           hero de fotogramas (expone window.__lenis)
-  js/sections.js       animaciones reveal (GSAP) y enlace activo del menú
-  poster.webp          primer fotograma (útil también para Open Graph)
-  still.webp           fotograma fijo para prefers-reduced-motion
-  frames/desktop/0001.webp … 0240.webp   1920 px de ancho, ~21,5 MB
-  frames/mobile/0001.webp  … 0240.webp   1280 px de ancho, ~14,9 MB
+  css/style.css          estilos base de las secciones
+  css/journey.css        fondo fijo, paneles de cristal, interludios, cursor, sonido, HUD, quiz
+  js/journey.js          fondo de fotogramas + mapeo scroll→tiempo + Lenis (expone window.__lenis, window.__journey)
+  js/sections.js         quiz, calculadora, slider, tabs, split text, cursor, easter egg, pin de Leistungen
+  js/sound.js            sonido (Web Audio), apagado por defecto
+  audio/soundtrack.m4a   (AAC 128 kbps) · soundtrack.ogg (Vorbis) · soundtrack.mp3 (128 kbps)
+  frames/desktop/0001–0400.webp   1920×1080, 24 fps (1 fotograma = 1/24 s)
+  frames/mobile/0001–0200.webp    1280×720, 12 fps
+  poster.webp · still.webp · favicon.svg · favicon-32.png · apple-touch-icon.png
 ```
 
-Sube `frames/`, `poster.webp` y `still.webp` a una ruta pública del hosting (Vercel, Netlify u otro), por ejemplo `/hero/`. Si cambias la ruta, actualiza `CONFIG.desktopPath` y `CONFIG.mobilePath` en `js/hero.js`, y los `src` de `poster.webp` / `still.webp`.
+Sube `frames/`, `audio/` y las imágenes a una ruta pública con caché larga (`Cache-Control: public, max-age=31536000, immutable`) y HTTP/2 o HTTP/3. Si cambias las rutas, actualiza `SETS` en `js/journey.js` y `SRC` en `js/sound.js`.
 
-## Cómo funciona
+## Arquitectura
 
-El scroll no reproduce un vídeo. Pinta 240 fotogramas WebP, uno a uno, en un `<canvas>` a pantalla completa, según el progreso de una sección de unos `600vh` con el canvas en `position: sticky`. Es el mismo recurso que la web de referencia tipo Cortex.
+**Orden de los scripts (importante):** gsap → ScrollTrigger → lenis → `sound.js` → `sections.js` → `journey.js`. `sections.js` crea primero el pin horizontal de «Leistungen» y después el resto de ScrollTriggers. Si cambias el orden, las posiciones posteriores al pin salen desplazadas.
 
-Lógica en `js/hero.js`:
+**Fondo (`js/journey.js`):**
+- Un `<canvas id="bg-canvas">` dentro de `.stage` (`position: fixed`, z-index 0). Todo el contenido va por encima (z-index 2–3).
+- Carga: primero el primer pantallazo (`HERO_T = 1,25 s`) con el preloader: uno de cada dos fotogramas en desktop (16) y todos en móvil (16). Luego el resto en segundo plano, de grueso a fino (cada 16, 8, 4, 2 y 1), con prioridad para los fotogramas cerca de donde está el usuario. Si falta uno, se pinta el más cercano ya cargado. **Nunca se cargan las dos tandas:** móvil (`max-width: 767px`) usa `frames/mobile/`.
+- DPR limitado: el canvas nunca tiene más píxeles que el propio fotograma (máximo 2×). Solo se redibuja cuando cambia el fotograma.
+- Suavizado: el tiempo mostrado sigue al tiempo objetivo con interpolación (0,3 desktop / 0,22 móvil), además de Lenis.
+- En vertical (móvil), el encuadre sigue al astronauta (a la derecha del centro mientras camina, centrado después).
 
-- Precarga los 240 fotogramas (desktop o móvil según `max-width: 767px`) con un preloader de porcentaje. La concurrencia es 8. No se quita el preloader hasta que la tanda está lista, para que el scrub no encuentre huecos.
-- Lenis suaviza el scroll. GSAP ScrollTrigger mapea el progreso `0–1` de `#hero-sequence` a los fotogramas (`scrub: 0.2`).
-- El canvas se dibuja en *cover*, con `devicePixelRatio` limitado a 2. Solo se redibuja si cambia el fotograma o el tamaño de la ventana.
-- Los textos van en HTML superpuesto, nunca dentro de las imágenes. Cada bloque tiene `data-start`, `data-end` y `data-fade` en progreso `0–1`.
-- Si el usuario tiene `prefers-reduced-motion: reduce`, no se cargan los 240 fotogramas. Se muestra `still.webp` a pantalla completa y el CTA final. La sección pasa a medir `100vh`.
+**Mapeo scroll → tiempo del vídeo** (`ANCHORS` en `journey.js`, lineal por tramos; `top` = borde superior de la sección arriba del viewport, `end` = borde inferior abajo):
 
-Dependencias por CDN, sin paso de build:
+| Sección | Tiempo del vídeo | Qué se ve |
+|---|---|---|
+| Hero (`#hero-sequence`, 210vh) | 0 → 1,6 s | Intro: camina sobre el suelo agrietado |
+| Das Problem + quiz (`#problem`) | 1,6 → 3,4 s | Suelo agrietado, la energía empieza a subir |
+| Interludio «Der Sprung» (`#sprung`) | 3,4 → 6,75 s | Energía, despegue (cuenta atrás 3-2-1-Los), destello |
+| Destello como cortinilla hacia Leistungen | ≈ 6,4–7,2 s | Capa `#wipe` blanca-lima por encima de todo, pico en 6,8 s |
+| Leistungen (pin horizontal) | 7,1 → 8,6 s | La Tierra desde arriba |
+| Interludio «Die Lösung» (`#loesung`) | 8,6 → 9,7 s | Se acerca al visor (retícula «Scan · 15 Prüfpunkte») |
+| Ablauf + Beispiel-Audit (`#ablauf`, `#referenz`) | 9,7 → 12,3 s | Primer plano del visor |
+| Rechner + Pakete (`#preise`) | 12,5 → 14,8 s | Caída en picado hacia las nubes |
+| Branchen + FAQ | 14,8 → 15,7 s | Nubes |
+| Interludio final (`#finale`) | 15,7 → 16,3 s | Niebla verde (capa `#mist`) |
+| Kontakt + footer | 16,3 → 16,62 s | Niebla verde final |
 
-- gsap 3.12.5 + ScrollTrigger
-- lenis 1.1.20 (JS y CSS)
-- Google Fonts: Syne y Outfit
+Si cambias alturas de secciones, el mapeo se recalcula solo (en cada `ScrollTrigger.refresh`). Si cambias el vídeo, ajusta los tiempos de `ANCHORS`, `STILLS`, `CHAPTERS` y el pico del destello en `updateFx()`. No los adivines: mira los fotogramas.
 
-Si el proyecto ya tiene un scroll suave, no instales un segundo Lenis: engancha `ScrollTrigger.update` al scroller que ya exista.
+**Foco:** mientras una `.sec` ocupa el centro, `body.bg-focus` aplica `blur(5px) brightness(.62)` al canvas (móvil: `blur(9px)`). En los interludios y en Leistungen el fondo se ve nítido. En móvil los paneles no usan `backdrop-filter` (por rendimiento) y llevan un cristal más opaco.
 
-## Tiempos de los textos
+**Reduced motion** (`prefers-reduced-motion: reduce`): sin Lenis ni scrub. Se carga un único fotograma fijo por sección (`STILLS`) y se cambia al entrar en cada una. No hay cuenta atrás, retícula ni split text, y los interludios pasan a tener altura normal.
 
-El master dura 16,71 s (401 fotogramas a 24 fps). El progreso `1` es el último fotograma (`t ≈ 16,67 s`).
+## Pulido premium
 
-| Beat | Progreso | Tiempo aprox. | Qué se ve | Texto actual (placeholder) |
-|---|---|---|---|---|
-| Pista de scroll | 0,00–0,055 | 0–0,9 s | Arranque, suelo agrietado | Desliza |
-| El problema | 0,05–0,22 | 0,8–3,7 s | Camina sobre el suelo agrietado | *El problema.* Tu negocio pierde clientes por errores que no ves. Auditoría digital para negocios locales en Zúrich. |
-| (sin texto) | 0,22–0,31 | 3,7–5,2 s | La energía crece | — |
-| El salto | 0,31–0,39 | 5,2–6,5 s | Despegue, justo antes del destello | *El salto.* Cruzamos el problema. |
-| (sin texto) | 0,39–0,58 | 6,5–9,7 s | Destello blanco-verde que se abre a la Tierra | Dejar respirar la imagen |
-| La solución | 0,58–0,75 | 9,7–12,5 s | Primer plano del visor, la Tierra reflejada | *La solución.* Encontramos lo que frena tu negocio y lo digitalizamos. |
-| (sin texto) | 0,75–0,84 | 12,5–14,0 s | Caída de lado, entra en las nubes | — |
-| CTA | 0,84–1,00 | 14,0–16,7 s | Atraviesa las nubes y cierra en niebla verde | *Zúrich.* ¿Listo para ver lo que está fallando? Botón: Solicitar auditoría |
+- **Split text:** los titulares `[data-split="words"]` suben palabra a palabra desde una máscara. Los interludios `[data-split="chars"][data-scrub]` aparecen letra a letra ligados al scroll. El título conserva el texto en `aria-label`.
+- **Transiciones:** el destello del vídeo hace de cortinilla hacia «Leistungen», la niebla cierra la página y los interludios se desvanecen con blur al salir.
+- **Microinteracciones:** botones con relleno que nace desde el puntero, botones magnéticos y tilt en las tarjetas. Cursor propio solo en desktop (`hover: hover` y `pointer: fine`): crece sobre lo clicable y muestra «Mehr» en las tarjetas y «Ziehen» en los sliders. Vibración háptica (`navigator.vibrate`) en móvil al responder el quiz y en los chips (no funciona en iPhone, porque Safari no lo soporta).
+- **Quiz en formato juego:** barra de 5 pasos, etiqueta flotante «+1 Leck» o «Dicht» en cada respuesta y pulso rojo. Al terminar hay un escaneo del anillo, un diagnóstico («Dicht», «Kleine Lecks», «Deutliche Lecks» o «Alarmstufe Rot»), partículas y el botón «Nochmals testen».
+- **HUD de capítulos** (desktop ≥ 1101 px): contador `T+ 07.5 s` y seis capítulos clicables (Boden, Sprung, Orbit, Visier, Sturzflug, Nebel).
+- **Easter egg:** 5 clics rápidos en el cuadrado lima del logo activan el «Schwerelos-Modus»: los elementos visibles flotan unos segundos y suena un whoosh.
+- **Favicon:** rombo lima sobre negro (`favicon.svg`, con PNG de respaldo).
+- `?p=0.5` abre la página en ese punto del scroll (0–1), útil para revisar. `?fine=1` fuerza el modo desktop del cursor y del HUD (solo para pruebas). En producción se pueden quitar.
 
-Si cambias el número de fotogramas o recortas el master, hay que recalcular estos `data-start` / `data-end`. No los adivines.
+## Sonido (`js/sound.js`)
 
-El prototipo acepta `?p=0.66` (u otro valor entre 0 y 1) para revisar un punto del recorrido en desarrollo. En producción se puede ignorar o quitar.
+- Botón «Ton an / Ton aus» en la navegación, **apagado por defecto**, porque los navegadores bloquean el autoplay. El estado se guarda en `localStorage` (`agentur-sound`). Si estaba encendido en la visita anterior, el sonido arranca con el primer clic, toque o tecla.
+- **Origen:** el audio original de los dos clips (`final_a.mp4` y `final_b.mp4`), unido con el mismo crossfade de 0,4 s que el vídeo, de modo que sigue la línea de tiempo del master (16,7 s), normalizado a −18 LUFS. No hay música ni sonidos externos con licencias dudosas.
+- **Fondo ambiental:** en el navegador se construye un loop sin costura (el final se funde 2 s sobre el principio). Pasa por un filtro paso bajo que se abre y sube de volumen según la velocidad del scroll. Debajo hay un drone grave sintetizado, muy suave.
+- **Scrub:** mientras haces scroll, suenan «granos» de 0,24 s del trozo de audio que corresponde al momento exacto del vídeo (granular, sin cortes). Por eso el despegue y las caídas suenan donde se ven.
+- **Sonidos de interfaz** generados con Web Audio: clic suave, sí y no en el quiz, acorde de resultado, tic en los sliders y whoosh del easter egg.
+- Fundidos de entrada y salida. Se silencia y suspende el `AudioContext` cuando la pestaña está oculta. El audio solo se descarga cuando el usuario activa el sonido.
 
-## Cómo integrarlo en la web
+## Placeholders que NO hay que rellenar inventando
 
-1. Copia fotogramas y assets al proyecto y súbelos a la ruta pública acordada.
-2. Coloca el markup de `#preloader` y `#hero-sequence` al inicio de la home, como primera sección. La navegación de la web puede sustituir a la del prototipo, pero debe quedar fija y legible (claro / lima) sobre el recorrido.
-3. Incorpora `css/style.css`, o porta las variables (`--lime`, `--bg`, etc.) y los bloques `#preloader`, `#hero-sequence`, `.hero-*` a tu CSS. No dejes que un reset pise `height: 600vh` ni `position: sticky`.
-4. Carga `js/hero.js` y las dependencias CDN (o instálalas por npm si el proyecto ya usa un bundler, manteniendo el mismo comportamiento).
-5. Las secciones de servicios, método y contacto van **después** de `#hero-sequence`. En el prototipo hay dos bloques de relleno (`#servicios`, `#contacto`) con el correo `hola@example.com` y el wordmark «Agencia»: sustitúyelos por la marca, los enlaces y el contacto reales.
-6. Los iconos de servicios no van pintados en el vídeo. Si deben aparecer en un momento del recorrido, añádelos como overlays HTML con su propio `data-start` / `data-end`, igual que los textos.
+- `[AGENTUR]`: nombre o logo (nav y footer). El cuadrado lima es un logo provisional.
+- Kontakt: `mailto:[E-MAIL]`, enlace de reserva `href="#"` y la línea `[PLATZHALTER: E-Mail, Telefon, WhatsApp-Link und Buchungslink einsetzen]`.
+- Impressum y Datenschutz (`href="#"`), obligatorios en Suiza antes de publicar.
+- En «Beispiel-Audit», el bloque `.slots[data-placeholder="referenzen"]`: primera fallstudie con resultados medidos, testimonio o vídeo de cliente y franja de 4 logos. **Hay que sustituirlo o borrarlo antes de publicar.** Ahí solo va contenido real.
+- El Beispiel-Audit está anonimizado y muestra un plan, no resultados medidos. Mantén la nota.
+- Los precios son recomendados, no validados. Revísalos antes de publicar.
+
+## Integración
+
+1. Copia la carpeta tal cual o porta el markup de `.stage`, `#wipe`, `#preloader`, la nav y las secciones en este orden. Las secciones deben tener fondo transparente.
+2. Mantén las dependencias por CDN (gsap 3.12.5 + ScrollTrigger, lenis 1.1.20, Google Fonts) o instálalas por npm con el mismo comportamiento. Si el proyecto ya tiene smooth scroll, no instales un segundo Lenis: engancha `ScrollTrigger.update` al que ya exista.
+3. No dejes que un reset CSS pise `position: sticky` de `.hero-sticky` y `.gap-sticky`, ni `position: fixed` de `.stage`.
 
 ## Rendimiento
 
-- Desktop: 240 WebP a 1920 px, calidad 75, unos 21,5 MB en total. Móvil: 1280 px, unos 14,9 MB. **No cargues las dos tandas a la vez.**
-- Sirve los WebP con caché larga (`Cache-Control` inmutable) y HTTP/2 o HTTP/3.
-- El peso de la home será alto por diseño; el preloader cubre la espera. Si hace falta aligerar: bajar a ~180 fotogramas, calidad 70, o precargar un subconjunto y el resto en segundo plano (con el riesgo de algún hueco si el usuario hace scroll rápido).
-- El hero va silenciado. No cargues el audio del master.
-
-## Qué no hacer
-
-- No incrustes un `<video>` con *playback* en lugar de los fotogramas: en scroll se desincroniza y pierde fluidez.
-- No recortes ni reexportes los fotogramas con otro intervalo sin recalcular los beats.
-- No pongas texto dentro de las imágenes.
-- No dupliques Lenis u otro *smooth scroll* si la web ya tiene uno.
-
-Cuando lo integres, respeta el look (fondo casi negro, lima `#B6FF3B`) y dime si hay conflicto con el framework, el router o el sistema de scroll de la web.
-
-
-## Estructura actual de la página (versión interactiva, contenido en alemán de-CH)
-
-Debajo del hero, cada sección es algo que el usuario toca o hace; el texto está reducido a titulares cortos y los detalles van detrás de interacciones. Lógica en `js/sections.js` (sin librerías extra aparte de GSAP, ScrollTrigger y Lenis):
-
-| Ancla | Sección | Interacción |
-|---|---|---|
-| `#problem` | Das Problem | Contadores animados (77 %, 3 %, 36 %, 63 %, con fuente) + Mini-Digital-Check: 5 preguntas sí/no → anillo animado con el número de fugas y CTA |
-| `#leistungen` | Leistungen | 6 tarjetas en scroll horizontal fijado (GSAP pin, ≥768 px); en móvil, deslizamiento con scroll-snap. Hover/tap: tilt 3D y detalle desplegable |
-| `#ablauf` | Ablauf | Línea de tiempo que se dibuja con el scroll (horizontal en desktop, vertical en móvil), 4 pasos |
-| `#referenz` | Beispiel-Audit | Slider antes/después (`#ba-range`): «Vorher · Diagnose» vs «Nachher · Plan». Sternen anonimizado; «Nachher» es el plan, NO resultados |
-| `#preise` | Rechner + Pakete | Calculadora (chips de sector con su KPI, sliders, selector de paquete) + tarjetas de paquetes con toggle Monatlich/Einrichtung; la tarjeta del paquete elegido en la calculadora se resalta. Extras en desplegable |
-| `#branchen` | Branchen | Chips de 8 sectores que cambian al momento el panel (fugas típicas, solución, KPI) |
-| `#faq` | FAQ | Acordeón, solo uno abierto a la vez |
-| `#kontakt` | Kontakt | CTA con botones magnéticos |
-
-Fórmula de la calculadora (del documento de referencia de la agencia): `Umsatz = Kunden × Bon × Besuche`; `Deckungsbeitrag = Umsatz × Marge %`; `Netto = Deckungsbeitrag − Paketgebühr`; `Break-even = Gebühr ÷ (Bon × Besuche × Marge %)`. Valores iniciales del documento: 15 clientes, CHF 40, 1 visita, 60 %, Growth CHF 690. Está marcada como estimación («Schätzung … kein Versprechen»); mantén esa etiqueta.
-
-Global: barra de progreso de scroll, brillo lima que sigue al cursor (solo desktop con ratón), botones magnéticos, reveal al entrar en pantalla, menú hamburguesa por debajo de 900 px. Con `prefers-reduced-motion` se desactivan glow, tilt, pin y animaciones; los contadores muestran el valor final.
-
-Pendientes marcados: `[AGENTUR]`, `mailto:[E-MAIL]`, enlace de «15-Minuten-Gespräch buchen», `[PLATZHALTER: …]`, Impressum y Datenschutz (obligatorios en Suiza). No inventes cifras ni resultados nuevos; si integras en otra web, conserva los IDs que usa `sections.js`.
+- Desktop: 400 WebP (≈ 35,8 MB en total, unos 90 KB por fotograma). Móvil: 200 WebP (≈ 9,6 MB). Antes de mostrar la página solo se esperan 16 fotogramas: ≈ 2,3 MB en desktop y ≈ 1,1 MB en móvil.
+- Si hace falta aligerar: calidad 65–70, o 300 fotogramas en desktop (recalcula `count` y `fps` en `SETS`).
+- Pruébala en un iPhone real (Safari) y en un Android de gama media antes de publicar.
