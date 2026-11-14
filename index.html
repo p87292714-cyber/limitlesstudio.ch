@@ -31,6 +31,7 @@
 </head>
 <body>
   <a class="skip-link" href="#problem">Zum Inhalt springen</a>
+  <div class="glow" id="glow" aria-hidden="true"></div>
 
   <div id="preloader" role="status" aria-live="polite">
     <div class="preloader-inner">
@@ -46,11 +47,12 @@
       <span class="logo-mark" aria-hidden="true">∞</span>
       <span class="logo-word">LIMITLESS</span>
     </a>
-    <nav aria-label="Hauptnavigation">
+    <button type="button" class="burger" id="burger" aria-label="Menü öffnen" aria-expanded="false" aria-controls="menu"><span></span><span></span></button>
+    <nav id="menu" aria-label="Hauptnavigation">
       <a href="#leistungen">Leistungen</a>
       <a href="#ablauf">Ablauf</a>
       <a href="#referenz">Referenz</a>
-      <a href="#preise">Preise</a>
+      <a href="#preise">Rechner</a>
       <a href="#faq">FAQ</a>
       <a href="#kontakt" class="nav-cta">Digital-Check</a>
     </nav>
@@ -99,138 +101,178 @@
       </div>
     </section>
 
+    <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
+
     <section class="sec" id="problem">
       <div class="wrap">
         <p class="kicker reveal">Das Problem</p>
-        <h2 class="reveal">Ihr Geschäft ist schon gut. Nur sieht es online kaum jemand.</h2>
-        <p class="lede reveal">Die meisten lokalen Betriebe haben kein Produktproblem, sondern ein Schaufensterproblem: Die Kundschaft findet sie nicht, kann nicht auf Anhieb buchen, und niemand lädt sie ein, wiederzukommen.</p>
+        <h2 class="reveal">Gutes Geschäft. Unsichtbares Schaufenster.</h2>
         <div class="stats">
-          <div class="stat reveal"><b>77 % / 3 %</b><span>möchten online buchen – aber nur 3 % der Schweizer KMU bieten es auf der Website an</span><i>localsearch &amp; HSLU 2025</i></div>
-          <div class="stat reveal"><b>36 %</b><span>der Schweizer KMU haben eine eigene Website, 82 % der Leute informieren sich online</span><i>localsearch &amp; HSLU 2025</i></div>
-          <div class="stat reveal"><b>48 %</b><span>der KMU mit Website haben ein vollständiges Google-Profil</span><i>Schweiz, 2025</i></div>
-          <div class="stat reveal"><b>63 %</b><span>der Schweizer Bevölkerung erreicht Instagram</span><i>IGEM-Digimonitor 2025</i></div>
+          <div class="stat reveal"><b><span data-count="77">0</span> %</b><span>möchten online buchen</span><i>localsearch &amp; HSLU 2025</i></div>
+          <div class="stat reveal"><b><span data-count="3">0</span> %</b><span>der KMU bieten es an</span><i>localsearch &amp; HSLU 2025</i></div>
+          <div class="stat reveal"><b><span data-count="36">0</span> %</b><span>der KMU haben eine Website</span><i>localsearch &amp; HSLU 2025</i></div>
+          <div class="stat reveal"><b><span data-count="63">0</span> %</b><span>erreicht Instagram in der Schweiz</span><i>IGEM 2025</i></div>
         </div>
-        <h3 class="sub reveal">Die versteckten Fehler, die wir in 5 Minuten finden</h3>
-        <ol class="leaks reveal">
-          <li>Keine, defekte oder veraltete Website</li>
-          <li>Unvollständiges oder nicht beanspruchtes Google-Profil</li>
-          <li>Unbeantwortete Bewertungen</li>
-          <li>Wenige oder alte Bewertungen</li>
-          <li>Unterschiedliche Daten in jedem Verzeichnis</li>
-          <li>Keine Online-Reservation oder -Terminbuchung</li>
-          <li>Kein Kurzvideo, kein aktives Instagram</li>
-          <li>Stockfotos statt echter Bilder</li>
-          <li>Kein eigener Kanal (Newsletter oder WhatsApp)</li>
-          <li>Kein CRM, keine Kundenbindung</li>
-          <li>Keine Online-Gutscheine</li>
-          <li>Abhängigkeit von Plattformen mit Provision</li>
-          <li>Nichts wird gemessen</li>
-          <li>Unsichtbar für die Suche mit KI</li>
-          <li>Kein Impressum oder keine Datenschutzerklärung</li>
-        </ol>
+
+        <div class="quiz reveal" id="quiz">
+          <div class="quiz-head">
+            <p class="kicker">Mini-Digital-Check · 30 Sekunden</p>
+            <h3>Wie viele Lecks hat Ihr Betrieb?</h3>
+          </div>
+          <ol class="quiz-q">
+            <li data-q="0"><span>Ist Ihr Google-Profil vollständig (Zeiten, eigene Fotos, Buchungsknopf)?</span><div class="yn"><button type="button" data-a="1">Ja</button><button type="button" data-a="0">Nein</button></div></li>
+            <li data-q="1"><span>Beantworten Sie jede Bewertung?</span><div class="yn"><button type="button" data-a="1">Ja</button><button type="button" data-a="0">Nein</button></div></li>
+            <li data-q="2"><span>Kann man in 2 Klicks online buchen?</span><div class="yn"><button type="button" data-a="1">Ja</button><button type="button" data-a="0">Nein</button></div></li>
+            <li data-q="3"><span>Lädt Ihre Website schnell auf dem Handy?</span><div class="yn"><button type="button" data-a="1">Ja</button><button type="button" data-a="0">Nein</button></div></li>
+            <li data-q="4"><span>Haben Sie einen eigenen Kanal (WhatsApp oder Newsletter)?</span><div class="yn"><button type="button" data-a="1">Ja</button><button type="button" data-a="0">Nein</button></div></li>
+          </ol>
+          <div class="quiz-result" id="quiz-result" aria-live="polite">
+            <div class="ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" class="ring-bg"/><circle cx="60" cy="60" r="52" class="ring-fg" id="ring-fg"/></svg><b id="quiz-num">–</b></div>
+            <div>
+              <p class="quiz-label" id="quiz-label">Beantworten Sie die 5 Fragen.</p>
+              <a class="btn magnetic" href="#kontakt">Vollen Digital-Check anfordern</a>
+              <p class="tiny">5 von 15 Punkten unseres Checks. Der volle Check ist kostenlos.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section class="sec sec-alt" id="leistungen">
-      <div class="wrap">
-        <p class="kicker reveal">Leistungen</p>
-        <h2 class="reveal">Mehr Buchungen, mehr Bewertungen, weniger Aufwand.</h2>
-        <p class="lede reveal">KI-Marketing für lokale Betriebe in Zürich. Die KI ersetzt nicht Sie – sie macht Video, Texte und Antworten so günstig, dass Sie bekommen, was früher eine teure Agentur kostete.</p>
-        <div class="cards">
-          <article class="card reveal"><h3>Google &amp; Bewertungen</h3><p>Ihr Google-Profil ist Ihr neues Schaufenster. Wir vervollständigen es, korrigieren Ihre Daten in allen Verzeichnissen und beantworten jede Bewertung innert 48 Stunden, in Ihrem Ton.</p></article>
-          <article class="card reveal"><h3>Kurzvideo mit KI</h3><p>Wir filmen Ihren echten Betrieb in einer halben Stunde und machen daraus 10 Kurzvideos pro Monat für Instagram, TikTok und Google.</p></article>
-          <article class="card reveal"><h3>Website &amp; lokales SEO</h3><p>Eine schnelle, mobile Website auf Deutsch und Englisch, gebaut, damit Google und ChatGPT Sie in Ihrer Region empfehlen.</p></article>
-          <article class="card reveal"><h3>Reservationen &amp; WhatsApp</h3><p>Ihre Kundschaft bucht um 23 Uhr, Ihr Telefon hat Pause. Ein Assistent beantwortet auf WhatsApp die üblichen Fragen.</p></article>
-          <article class="card reveal"><h3>Kundenbindung &amp; Gutscheine</h3><p>Jeder Stammgast ist mehr wert als ein neuer. Newsletter, digitale Treuekarte und Gutscheine, die sich an Weihnachten von selbst verkaufen.</p></article>
-          <article class="card reveal"><h3>Werbung &amp; Analyse</h3><p>Werbung nur in Ihrer Region und ein einseitiger Bericht jeden Monat: wie viele Anrufe, Routen und Buchungen wir Ihnen gebracht haben.</p></article>
+    <section class="sec sec-alt hscroll" id="leistungen">
+      <div class="hs-pin">
+        <div class="wrap hs-head">
+          <p class="kicker reveal">Leistungen</p>
+          <h2 class="reveal">Mehr Buchungen. Weniger Aufwand.</h2>
+          <p class="hint">Karten antippen für Details <span aria-hidden="true">→</span></p>
         </div>
-        <p class="note reveal">Echt statt künstlich: Wir filmen Ihr Lokal und Ihre Leute. Die KI schneidet, untertitelt und übersetzt. Wir kaufen oder schreiben nie Bewertungen und zeigen nie KI-generierte Gerichte oder Arbeiten als echt.</p>
+        <div class="hs-track" id="hs-track">
+          <article class="tcard" tabindex="0"><div class="tcard-in"><span class="ico"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.3-7-12a7 7 0 0 1 14 0c0 5.7-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg></span><h3>Google &amp; Bewertungen</h3><p class="one">Ihr neues Schaufenster.</p><p class="more">Profil vervollständigen, Daten in allen Verzeichnissen korrigieren, jede Bewertung innert 48 Stunden beantworten – in Ihrem Ton.</p></div></article>
+          <article class="tcard" tabindex="0"><div class="tcard-in"><span class="ico"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="13" height="14" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg></span><h3>Kurzvideo mit KI</h3><p class="one">30 Minuten Dreh, 10 Videos.</p><p class="more">Wir filmen Ihren echten Betrieb und machen daraus 10 Kurzvideos pro Monat für Instagram, TikTok und Google.</p></div></article>
+          <article class="tcard" tabindex="0"><div class="tcard-in"><span class="ico"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span><h3>Website &amp; lokales SEO</h3><p class="one">Gefunden – auch von ChatGPT.</p><p class="more">Schnell, mobil, auf Deutsch und Englisch, gebaut, damit Google und ChatGPT Sie in Ihrer Region empfehlen.</p></div></article>
+          <article class="tcard" tabindex="0"><div class="tcard-in"><span class="ico"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.7 7.1L4 20l1-4.9A8 8 0 1 1 21 12z"/></svg></span><h3>Reservationen &amp; WhatsApp</h3><p class="one">Buchen um 23 Uhr.</p><p class="more">Ihr Telefon hat Pause. Ein Assistent beantwortet auf WhatsApp die üblichen Fragen.</p></div></article>
+          <article class="tcard" tabindex="0"><div class="tcard-in"><span class="ico"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7S10 3 7.5 3 5 5.5 7 7M12 7s2-4 4.5-4S19 5.5 17 7"/></svg></span><h3>Kundenbindung &amp; Gutscheine</h3><p class="one">Stammgäste statt Zufall.</p><p class="more">Newsletter, digitale Treuekarte und Gutscheine, die sich an Weihnachten von selbst verkaufen.</p></div></article>
+          <article class="tcard" tabindex="0"><div class="tcard-in"><span class="ico"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span><h3>Werbung &amp; Analyse</h3><p class="one">Jeder Franken messbar.</p><p class="more">Werbung nur in Ihrer Region und ein einseitiger Monatsbericht: Anrufe, Routen, Buchungen.</p></div></article>
+        </div>
       </div>
     </section>
 
     <section class="sec" id="ablauf">
       <div class="wrap">
         <p class="kicker reveal">Ablauf</p>
-        <h2 class="reveal">Vom Digital-Check zum Resultat.</h2>
-        <ol class="steps">
-          <li class="reveal"><b>01</b><h3>Kostenloser Digital-Check</h3><p>Wir prüfen die 15 häufigsten digitalen Lecks und fassen alles auf einer Seite zusammen: 3 Probleme, 3 Lösungen und eine Zahl zur Wirkung – dazu ein 3-Minuten-Video, das alles erklärt.</p></li>
-          <li class="reveal"><b>02</b><h3>20-Minuten-Gespräch</h3><p>Wir zeigen Ihnen Ihr Google-Profil auf Ihrem Handy, rechnen mit Ihren Zahlen und schlagen ein einziges, passendes Paket vor.</p></li>
-          <li class="reveal"><b>03</b><h3>30-Tage-Pilot</h3><p>Wir legen vorab 2 bis 3 Kennzahlen fest und setzen die ersten Massnahmen um.</p></li>
-          <li class="reveal"><b>04</b><h3>Review am Tag 30</h3><p>Vorher-nachher-Bericht mit Daten. Gibt es eine Verbesserung, geht es weiter; wenn nicht, erklären wir warum und passen an.</p></li>
-        </ol>
+        <h2 class="reveal">In 4 Schritten zum Resultat.</h2>
+        <div class="timeline" id="timeline">
+          <div class="tl-line"><span id="tl-fill"></span></div>
+          <div class="tl-step"><b>01</b><h3>Gratis Digital-Check</h3><p>15 Punkte, 1 Seite, 3-Minuten-Video.</p></div>
+          <div class="tl-step"><b>02</b><h3>20-Minuten-Gespräch</h3><p>Ihre Zahlen, ein passendes Paket.</p></div>
+          <div class="tl-step"><b>03</b><h3>30-Tage-Pilot</h3><p>2–3 Kennzahlen, vorab festgelegt.</p></div>
+          <div class="tl-step"><b>04</b><h3>Review am Tag 30</h3><p>Vorher-nachher mit Daten.</p></div>
+        </div>
       </div>
     </section>
 
     <section class="sec sec-alt" id="referenz">
       <div class="wrap">
         <p class="kicker reveal">Beispiel-Audit</p>
-        <h2 class="reveal">Historisches Restaurant im Limmattal: 4,4 Sterne bei Google – und ein digitales Schaufenster von 2015.</h2>
-        <div class="case">
-          <div class="reveal"><h3>Ausgangslage</h3><p>Fast 500 Google-Bewertungen, Schweizer Küche, Terrasse und Bankette, über 160 Jahre Geschichte.</p></div>
-          <div class="reveal"><h3>Diagnose</h3><p>Website mit Fehler 500 ohne «www», Stockfotos, nicht beanspruchtes TripAdvisor-Profil mit falscher Telefonnummer, manuelle Reservation, kein Instagram, kein Lieferdienst, keine Gutscheine, kein Newsletter.</p></div>
-          <div class="reveal"><h3>Plan</h3><p>Woche 1: Google und Verzeichnisse. Monat 1: Reservation, Gutscheine und WhatsApp-Kanal. Monat 2–3: wöchentliches Video und Newsletter.</p></div>
+        <h2 class="reveal">Historisches Restaurant im Limmattal. 4,4 Sterne, Schaufenster von 2015.</h2>
+        <div class="ba reveal" id="ba">
+          <div class="ba-side ba-before">
+            <p class="ba-tag">Vorher · Diagnose</p>
+            <ul><li>Website: Fehler 500 ohne «www»</li><li>Stockfotos statt echter Bilder</li><li>TripAdvisor mit falscher Nummer</li><li>Reservation nur manuell</li><li>Kein Instagram, keine Gutscheine</li><li>Kein Newsletter</li></ul>
+          </div>
+          <div class="ba-side ba-after" id="ba-after">
+            <p class="ba-tag">Nachher · Plan</p>
+            <ul><li>Woche 1: Google &amp; Verzeichnisse</li><li>Echte Fotos aus dem Betrieb</li><li>Korrekte Daten überall</li><li>Monat 1: Online-Reservation</li><li>Gutscheine &amp; WhatsApp-Kanal</li><li>Monat 2–3: Video &amp; Newsletter</li></ul>
+          </div>
+          <div class="ba-handle" id="ba-handle"><span>⟷</span></div>
+          <input type="range" min="0" max="100" value="50" id="ba-range" aria-label="Vorher-Nachher-Regler" />
         </div>
-        <p class="note reveal">Anonymisiertes Beispiel eines Audits bei einem Interessenten, kein Kundenprojekt. Resultate veröffentlichen wir erst, wenn sie gemessen sind.</p>
+        <p class="tiny reveal">Anonymisiertes Audit bei einem Interessenten. «Nachher» zeigt den Plan, keine gemessenen Resultate.</p>
       </div>
     </section>
 
     <section class="sec" id="preise">
       <div class="wrap">
-        <p class="kicker reveal">Pakete &amp; Preise</p>
-        <h2 class="reveal">Klare Pakete in CHF. Mindestlaufzeit 3 Monate, danach monatlich kündbar.</h2>
-        <div class="plans">
-          <article class="plan reveal"><h3>Digital-Check</h3><p class="for">Für jeden Betrieb</p><p class="price">CHF 0</p><ul><li>Prüfung von 15 Problemen</li><li>Bericht auf 1 Seite</li><li>3-Minuten-Erklärvideo</li><li>3 Sofortmassnahmen</li></ul></article>
-          <article class="plan reveal"><h3>Starter «Sichtbar»</h3><p class="for">Kleinbetrieb ohne Zeit</p><p class="price">CHF 290<small>/Monat</small></p><p class="setup">Einrichtung CHF 990</p><ul><li>Optimiertes Google-Profil</li><li>Korrigierte Verzeichnisse</li><li>Antworten auf Bewertungen (KI, von Hand geprüft)</li><li>QR-Code für Bewertungen</li><li>4 Kurzvideos pro Monat</li><li>Monatsbericht</li></ul></article>
-          <article class="plan plan-hot reveal"><span class="badge">Beliebt</span><h3>Growth «Voll»</h3><p class="for">Das Hauptpaket</p><p class="price">CHF 690<small>/Monat</small></p><p class="setup">Einrichtung CHF 2'490</p><ul><li>Alles aus Starter</li><li>Website-Reparatur oder One-Pager</li><li>Online-Reservation oder -Termine</li><li>WhatsApp Business</li><li>10 Kurzvideos pro Monat</li><li>Monatlicher Newsletter</li><li>Gutschein-Shop</li></ul></article>
-          <article class="plan reveal"><h3>Premium «Automatisch»</h3><p class="for">Team oder mehrere Standorte</p><p class="price">CHF 1'290<small>/Monat</small></p><p class="setup">Einrichtung CHF 4'900</p><ul><li>Alles aus Growth</li><li>Website mit 5–10 Seiten (DE/EN)</li><li>Chatbot für Web und WhatsApp</li><li>CRM mit Automationen</li><li>Kundenbindung &amp; Werbung</li><li>16 Videos pro Monat, 1 Dreh pro Quartal</li></ul></article>
+        <p class="kicker reveal">Rechner</p>
+        <h2 class="reveal">Was bringt Ihnen das pro Monat?</h2>
+        <div class="calc reveal" id="calc">
+          <div class="calc-in">
+            <div class="chips chips-sm" id="calc-sector" role="group" aria-label="Branche wählen">
+              <button type="button" data-kpi="Zusätzliche Gedecke pro Woche und online verkaufte Gutscheine." class="is-on">Gastro</button>
+              <button type="button" data-kpi="Auslastung der Agenda und Ausfallquote.">Coiffeur</button>
+              <button type="button" data-kpi="Netto-Neumitglieder pro Monat und Umwandlung Probetraining → Mitglied.">Fitness</button>
+              <button type="button" data-kpi="Klicks auf «Route», Anrufe aus Google und Click-&amp;-Collect-Verkäufe.">Laden</button>
+              <button type="button" data-kpi="Anteil Online-Termine und gefüllte Lücken.">Praxis</button>
+              <button type="button" data-kpi="Kosten pro Offertanfrage im Vergleich zum Portal.">Handwerk</button>
+              <button type="button" data-kpi="Anteil Direktbuchungen und gesparte Provision.">Hotel</button>
+            </div>
+            <p class="tiny" id="calc-kpi">KPI: Zusätzliche Gedecke pro Woche und online verkaufte Gutscheine.</p>
+            <label class="sl"><span>Neue oder zurückgewonnene Kunden / Monat <b id="o-clients">15</b></span><input type="range" id="c-clients" min="1" max="100" value="15"></label>
+            <label class="sl"><span>Durchschnittsbon (CHF) <b id="o-ticket">40</b></span><input type="range" id="c-ticket" min="5" max="300" step="5" value="40"></label>
+            <label class="sl"><span>Besuche pro Kunde / Monat <b id="o-visits">1</b></span><input type="range" id="c-visits" min="1" max="8" value="1"></label>
+            <label class="sl"><span>Deckungsbeitrag (%) <b id="o-margin">60</b></span><input type="range" id="c-margin" min="10" max="90" step="5" value="60"></label>
+            <div class="seg" id="c-fee" role="group" aria-label="Paket">
+              <button type="button" data-fee="290">Starter 290</button>
+              <button type="button" data-fee="690" class="is-on">Growth 690</button>
+              <button type="button" data-fee="1290">Premium 1'290</button>
+            </div>
+          </div>
+          <div class="calc-out">
+            <div><span>Zusätzlicher Umsatz</span><b id="r-rev">–</b></div>
+            <div><span>Zusätzlicher Deckungsbeitrag</span><b id="r-con">–</b></div>
+            <div class="big"><span>Netto nach Paket</span><b id="r-net">–</b></div>
+            <div><span>Kunden / Monat, um das Paket zu decken</span><b id="r-be">–</b></div>
+            <p class="tiny">Schätzung mit Ihren Annahmen, kein Versprechen. Preise exkl. MWST.</p>
+          </div>
         </div>
-        <div class="extras reveal">
-          <h3 class="sub">Projekt «Marke &amp; App»</h3>
-          <p>Identität, neue Website, Web-App für Bestellungen oder Reservationen, Click &amp; Collect: CHF 6'000 bis 12'000, Wartung CHF 150 bis 300 pro Monat.</p>
-          <h3 class="sub">Extras</h3>
+
+        <p class="kicker reveal" style="margin-top:5rem">Pakete &amp; Preise</p>
+        <h2 class="reveal">3 Monate fix, dann monatlich kündbar.</h2>
+        <div class="seg seg-center reveal" id="price-mode" role="group" aria-label="Preisansicht"><button type="button" class="is-on" data-m="month">Monatlich</button><button type="button" data-m="setup">Einrichtung</button></div>
+        <div class="plans">
+          <article class="plan reveal tilt" data-plan="0"><h3>Digital-Check</h3><p class="price" data-month="CHF 0" data-setup="CHF 0">CHF 0</p><p class="one">15 Punkte, 1 Seite, Video, 3 Sofortmassnahmen.</p></article>
+          <article class="plan reveal tilt" data-plan="290"><h3>Starter «Sichtbar»</h3><p class="price" data-month="CHF 290/Mt." data-setup="CHF 990">CHF 290/Mt.</p><p class="one">Google, Verzeichnisse, Bewertungen, 4 Videos.</p><details><summary>Alles anzeigen</summary><ul><li>Optimiertes Google-Profil</li><li>Korrigierte Verzeichnisse</li><li>Antworten auf Bewertungen (KI, geprüft)</li><li>QR-Code für Bewertungen</li><li>4 Kurzvideos / Monat</li><li>Monatsbericht</li></ul></details></article>
+          <article class="plan plan-hot reveal tilt" data-plan="690"><span class="badge">Beliebt</span><h3>Growth «Voll»</h3><p class="price" data-month="CHF 690/Mt." data-setup="CHF 2'490">CHF 690/Mt.</p><p class="one">Starter + Website, Buchung, WhatsApp, 10 Videos.</p><details><summary>Alles anzeigen</summary><ul><li>Alles aus Starter</li><li>Website-Reparatur oder One-Pager</li><li>Online-Reservation / Termine</li><li>WhatsApp Business</li><li>10 Kurzvideos / Monat</li><li>Newsletter &amp; Gutschein-Shop</li></ul></details></article>
+          <article class="plan reveal tilt" data-plan="1290"><h3>Premium «Automatisch»</h3><p class="price" data-month="CHF 1'290/Mt." data-setup="CHF 4'900">CHF 1'290/Mt.</p><p class="one">Growth + Chatbot, CRM, Werbung, 16 Videos.</p><details><summary>Alles anzeigen</summary><ul><li>Website 5–10 Seiten (DE/EN)</li><li>Chatbot Web &amp; WhatsApp</li><li>CRM mit Automationen</li><li>Kundenbindung &amp; Werbung</li><li>16 Videos / Monat, 1 Dreh pro Quartal</li></ul></details></article>
+        </div>
+        <details class="extras reveal"><summary>Extras &amp; Projekt «Marke &amp; App»</summary>
           <ul class="extra-list">
+            <li><span>Projekt «Marke &amp; App»</span><b>CHF 6'000–12'000</b></li>
             <li><span>4 zusätzliche Kurzvideos</span><b>CHF 390</b></li>
             <li><span>Foto- und Videodrehtag</span><b>CHF 900–1'600</b></li>
-            <li><span>WhatsApp- oder Web-Chatbot einzeln</span><b>CHF 1'200 + 120/Monat</b></li>
-            <li><span>Gutschein-Shop</span><b>CHF 490 Einrichtung</b></li>
-            <li><span>Google- oder Meta-Ads-Betreuung</span><b>CHF 390/Monat + Budget</b></li>
-            <li><span>Übersetzung Website und Videos (FR oder IT)</span><b>CHF 350 pro Sprache</b></li>
-            <li><span>Landingpage für Event oder Kampagne</span><b>CHF 450</b></li>
+            <li><span>Chatbot einzeln</span><b>CHF 1'200 + 120/Mt.</b></li>
+            <li><span>Gutschein-Shop</span><b>CHF 490</b></li>
+            <li><span>Ads-Betreuung</span><b>CHF 390/Mt. + Budget</b></li>
+            <li><span>Übersetzung FR oder IT</span><b>CHF 350 / Sprache</b></li>
+            <li><span>Event-Landingpage</span><b>CHF 450</b></li>
           </ul>
-          <p class="note">Alle Preise exkl. MWST. Werbebudget zahlen Sie direkt. Konten, Domain und Inhalte gehören immer Ihnen.</p>
-        </div>
+        </details>
+        <p class="tiny reveal">Exkl. MWST. Konten, Domain und Inhalte gehören immer Ihnen.</p>
       </div>
     </section>
 
     <section class="sec sec-alt" id="branchen">
       <div class="wrap">
         <p class="kicker reveal">Branchen</p>
-        <h2 class="reveal">Für lokale Betriebe in Zürich und im Limmattal.</h2>
-        <div class="sectors">
-          <div class="sector reveal"><h3>Restaurants, Bars &amp; Cafés</h3><p>Reservation per Telefon, Speisekarte als PDF, unbeantwortete Bewertungen, Abhängigkeit von Uber Eats.</p></div>
-          <div class="sector reveal"><h3>Coiffeur &amp; Beauty</h3><p>Termine nur per Telefon, No-Shows, Instagram ohne Buchungslink.</p></div>
-          <div class="sector reveal"><h3>Fitness &amp; Yoga</h3><p>Probetrainings ohne Nachfassen, Kurspläne als Bild, Kündigungen, die niemand zurückgewinnt.</p></div>
-          <div class="sector reveal"><h3>Läden &amp; lokaler Handel</h3><p>Sortiment unsichtbar bei Google, kein Click &amp; Collect, veraltete Öffnungszeiten.</p></div>
-          <div class="sector reveal"><h3>Praxen &amp; Physiotherapie</h3><p>Überlastetes Telefon, Lücken durch Ausfälle, immer gleiche Fragen.</p></div>
-          <div class="sector reveal"><h3>Handwerk</h3><p>Verpasste Anrufe auf der Baustelle, kein Offertformular mit Fotos, Gebühren für Offertportale.</p></div>
-          <div class="sector reveal"><h3>Immobilien</h3><p>Abhängigkeit von Homegate und ImmoScout24, langsame Antworten an Interessenten.</p></div>
-          <div class="sector reveal"><h3>Hotels &amp; Unterkünfte</h3><p>Booking.com-Provisionen, wenig Direktbuchungen, keine E-Mails an frühere Gäste.</p></div>
+        <h2 class="reveal">Ihre Branche. Ihre Lecks.</h2>
+        <div class="chips reveal" id="sector-chips" role="group" aria-label="Branche wählen">
+          <button type="button" class="is-on" data-i="0">Gastro</button><button type="button" data-i="1">Coiffeur &amp; Beauty</button><button type="button" data-i="2">Fitness</button><button type="button" data-i="3">Läden</button><button type="button" data-i="4">Praxen</button><button type="button" data-i="5">Handwerk</button><button type="button" data-i="6">Immobilien</button><button type="button" data-i="7">Hotels</button>
         </div>
+        <div class="sector-panel reveal" id="sector-panel" aria-live="polite"></div>
       </div>
     </section>
 
     <section class="sec" id="faq">
       <div class="wrap wrap-narrow">
         <p class="kicker reveal">FAQ</p>
-        <h2 class="reveal">Häufige Fragen</h2>
+        <h2 class="reveal">Kurz gefragt.</h2>
         <div class="faq">
-          <details class="reveal"><summary>Ich habe keine Zeit für Social Media.</summary><p>Genau dafür sind wir da. Sie geben uns 30 Minuten pro Monat für den Dreh, den Rest erledigen wir.</p></details>
-          <details class="reveal"><summary>Ist das nicht teuer?</summary><p>Mit Ihrem Durchschnittsbon rechnen wir gemeinsam aus, wie viele Kundinnen und Kunden pro Monat die Gebühr decken. Eine klassische Social-Media-Agentur kostet CHF 800 bis 3'000 pro Monat.</p></details>
-          <details class="reveal"><summary>Das macht schon mein Neffe.</summary><p>Perfekt, er soll weitermachen. Wir kümmern uns um Google, Bewertungen und Reservationen – dort geht Geld verloren.</p></details>
-          <details class="reveal"><summary>Meine Kundschaft ist älter.</summary><p>Sieben von zehn Schweizerinnen und Schweizern zwischen 60 und 79 möchten sich online über ein KMU informieren (localsearch &amp; HSLU 2025).</p></details>
-          <details class="reveal"><summary>Ich hatte schon eine Agentur, es hat nicht funktioniert.</summary><p>Deshalb gibt es keinen Mehrjahresvertrag: 3 Monate, danach monatlich kündbar, mit Kennzahlen ab dem ersten Tag.</p></details>
-          <details class="reveal"><summary>Wirkt KI nicht künstlich?</summary><p>Wir filmen Ihr Lokal und Ihre Leute echt. Die KI schneidet, untertitelt und übersetzt nur.</p></details>
-          <details class="reveal"><summary>Garantieren Sie virale Videos oder Platz 1 bei Google?</summary><p>Nein. Wir garantieren die Lieferung: Anzahl Videos, Antwort auf Bewertungen innert 48 Stunden und einen Monatsbericht.</p></details>
+          <details class="reveal"><summary>Keine Zeit für Social Media?</summary><p>30 Minuten Dreh pro Monat. Den Rest machen wir.</p></details>
+          <details class="reveal"><summary>Ist das teuer?</summary><p>Rechnen Sie es oben nach. Klassische Social-Media-Agenturen kosten CHF 800–3'000 pro Monat.</p></details>
+          <details class="reveal"><summary>Das macht schon mein Neffe.</summary><p>Perfekt. Wir übernehmen Google, Bewertungen und Reservationen – dort geht Geld verloren.</p></details>
+          <details class="reveal"><summary>Meine Kundschaft ist älter.</summary><p>7 von 10 Personen zwischen 60 und 79 informieren sich online über KMU (localsearch &amp; HSLU 2025).</p></details>
+          <details class="reveal"><summary>Agentur schon probiert – ohne Erfolg?</summary><p>Kein Mehrjahresvertrag: 3 Monate, dann monatlich, mit Kennzahlen ab Tag 1.</p></details>
+          <details class="reveal"><summary>Wirkt KI nicht künstlich?</summary><p>Wir filmen echt. Die KI schneidet, untertitelt und übersetzt nur.</p></details>
+          <details class="reveal"><summary>Garantieren Sie virale Videos?</summary><p>Nein. Wir garantieren die Lieferung: Videos, Antworten innert 48 Stunden, Monatsbericht.</p></details>
         </div>
       </div>
     </section>
@@ -238,11 +280,10 @@
     <section class="sec sec-cta" id="kontakt">
       <div class="wrap wrap-narrow center">
         <p class="kicker reveal">Kontakt</p>
-        <h2 class="reveal">Kostenloser Digital-Check in 48 Stunden.</h2>
-        <p class="lede reveal">Wir zeigen Ihnen, wo Sie jede Woche Kundschaft verlieren.</p>
+        <h2 class="reveal">Gratis Digital-Check in 48 Stunden.</h2>
         <div class="cta-row reveal">
-          <a class="btn" href="#anfrage">Kostenlosen Digital-Check anfordern</a>
-          <a class="btn btn-ghost" id="cta-booking" href="#" target="_blank" rel="noopener">15-Minuten-Gespräch buchen</a>
+          <a class="btn magnetic" href="#anfrage">Digital-Check anfordern</a>
+          <a class="btn btn-ghost magnetic" id="cta-booking" href="#" target="_blank" rel="noopener">15-Minuten-Gespräch buchen</a>
         </div>
         <p class="contact-details reveal" id="contact-details"></p>
 

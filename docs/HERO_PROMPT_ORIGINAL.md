@@ -89,22 +89,23 @@ El prototipo acepta `?p=0.66` (u otro valor entre 0 y 1) para revisar un punto d
 Cuando lo integres, respeta el look (fondo casi negro, lima `#B6FF3B`) y dime si hay conflicto con el framework, el router o el sistema de scroll de la web.
 
 
-## Estructura actual de la página (contenido ya en alemán)
+## Estructura actual de la página (versión interactiva, contenido en alemán de-CH)
 
-Debajo del hero, `index.html` ya incluye todas las secciones con el contenido de la agencia:
+Debajo del hero, cada sección es algo que el usuario toca o hace; el texto está reducido a titulares cortos y los detalles van detrás de interacciones. Lógica en `js/sections.js` (sin librerías extra aparte de GSAP, ScrollTrigger y Lenis):
 
-| Ancla | Sección | Contenido |
+| Ancla | Sección | Interacción |
 |---|---|---|
-| `#problem` | Das Problem | 4 cifras (77 % / 3 %, 36 %, 48 %, 63 %) y las 15 fugas digitales |
-| `#leistungen` | Leistungen | 6 servicios (Google y reseñas, vídeo corto con IA, web y SEO local, reservas y WhatsApp, fidelización y vales, anuncios y analítica) |
-| `#ablauf` | Ablauf | Digital-Check gratis → reunión de 20 min → piloto de 30 días → revisión el día 30 |
-| `#referenz` | Beispiel-Audit | Caso Sternen **anonimizado** («restaurante histórico del Limmattal»), sin resultados; no lo conviertas en caso de éxito con cifras |
-| `#preise` | Pakete & Preise | Digital-Check CHF 0, Starter 990 + 290/mes, Growth 2'490 + 690/mes, Premium 4'900 + 1'290/mes, proyecto Marke & App, extras; sin MWST |
-| `#branchen` | Branchen | 8 sectores |
-| `#faq` | FAQ | 7 preguntas (`<details>`) |
-| `#kontakt` | Kontakt | CTA «Kostenlosen Digital-Check anfordern» y «15-Minuten-Gespräch buchen» |
-| footer | | Impressum y Datenschutz |
+| `#problem` | Das Problem | Contadores animados (77 %, 3 %, 36 %, 63 %, con fuente) + Mini-Digital-Check: 5 preguntas sí/no → anillo animado con el número de fugas y CTA |
+| `#leistungen` | Leistungen | 6 tarjetas en scroll horizontal fijado (GSAP pin, ≥768 px); en móvil, deslizamiento con scroll-snap. Hover/tap: tilt 3D y detalle desplegable |
+| `#ablauf` | Ablauf | Línea de tiempo que se dibuja con el scroll (horizontal en desktop, vertical en móvil), 4 pasos |
+| `#referenz` | Beispiel-Audit | Slider antes/después (`#ba-range`): «Vorher · Diagnose» vs «Nachher · Plan». Sternen anonimizado; «Nachher» es el plan, NO resultados |
+| `#preise` | Rechner + Pakete | Calculadora (chips de sector con su KPI, sliders, selector de paquete) + tarjetas de paquetes con toggle Monatlich/Einrichtung; la tarjeta del paquete elegido en la calculadora se resalta. Extras en desplegable |
+| `#branchen` | Branchen | Chips de 8 sectores que cambian al momento el panel (fugas típicas, solución, KPI) |
+| `#faq` | FAQ | Acordeón, solo uno abierto a la vez |
+| `#kontakt` | Kontakt | CTA con botones magnéticos |
 
-La navegación fija enlaza a esas anclas (con Lenis hace scroll suave). Los textos marcados como `[AGENTUR]`, `[E-MAIL]` y `[PLATZHALTER: …]` son **pendientes**: pídeme el nombre de la agencia, email, teléfono, WhatsApp, enlace de reserva y las páginas de Impressum y Datenschutz (obligatorias en Suiza) antes de publicar. Las animaciones reveal usan la clase `.reveal`; respetan `prefers-reduced-motion`.
+Fórmula de la calculadora (del documento de referencia de la agencia): `Umsatz = Kunden × Bon × Besuche`; `Deckungsbeitrag = Umsatz × Marge %`; `Netto = Deckungsbeitrag − Paketgebühr`; `Break-even = Gebühr ÷ (Bon × Besuche × Marge %)`. Valores iniciales del documento: 15 clientes, CHF 40, 1 visita, 60 %, Growth CHF 690. Está marcada como estimación («Schätzung … kein Versprechen»); mantén esa etiqueta.
 
-Si mi web existente ya tiene alguna de estas secciones, fusiónalas sin duplicar y conserva estos textos en alemán.
+Global: barra de progreso de scroll, brillo lima que sigue al cursor (solo desktop con ratón), botones magnéticos, reveal al entrar en pantalla, menú hamburguesa por debajo de 900 px. Con `prefers-reduced-motion` se desactivan glow, tilt, pin y animaciones; los contadores muestran el valor final.
+
+Pendientes marcados: `[AGENTUR]`, `mailto:[E-MAIL]`, enlace de «15-Minuten-Gespräch buchen», `[PLATZHALTER: …]`, Impressum y Datenschutz (obligatorios en Suiza). No inventes cifras ni resultados nuevos; si integras en otra web, conserva los IDs que usa `sections.js`.

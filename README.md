@@ -24,7 +24,7 @@ En desarrollo, `?p=0.66` (u otro valor entre 0 y 1) salta a un punto concreto de
 | `index.html` | Todo el contenido (hero, Problem, Leistungen, Ablauf, Referenz, Preise, Branchen, FAQ, Kontakt) y SEO. |
 | `src/style.css` | Estilos del prototipo (casi negro `#05070A`, lima `#B6FF3B`, Syne + Outfit) y del formulario. |
 | `src/hero.js` | Hero de fotogramas: precarga (8 en paralelo), canvas *cover*, beats de texto por `data-start` / `data-end`. |
-| `src/sections.js` | Animaciones reveal, enlace activo del menú, scroll a anclas con Lenis. |
+| `src/sections.js` | Secciones interactivas: Mini-Digital-Check (5 preguntas), tarjetas de Leistungen en scroll horizontal fijado (≥768 px) o deslizables (móvil), línea de tiempo, slider Vorher/Nachher, calculadora (`Umsatz = Kunden × Bon × Besuche`; `Netto = Umsatz × Marge − Paket`), toggle Monatlich/Einrichtung, pestañas de Branchen, FAQ de una en una, menú hamburguesa (<900 px), barra de progreso, brillo y botones magnéticos (solo escritorio). Todo se desactiva con `prefers-reduced-motion`. |
 | `src/contact.js` | Formulario y datos de contacto, que se configuran con variables de entorno. |
 | `public/hero/frames/desktop/` | 240 fotogramas de 1920 px (unos 20,5 MB). |
 | `public/hero/frames/mobile/` | 240 fotogramas de 1280 px (unos 14,2 MB). Se usan con un ancho de 767 px o menos. **Nunca se cargan las dos tandas.** |
@@ -74,7 +74,8 @@ El botón «15-Minuten-Gespräch buchen», los datos de contacto y los enlaces a
 - [ ] **Impressum y Datenschutzerklärung** publicados (obligatorios en Suiza, nDSG) y enlazados con `VITE_LEGAL_URL` / `VITE_PRIVACY_URL`.
 - [ ] Destino real del formulario probado de principio a fin.
 - [ ] Revisar las fuentes de las cifras (localsearch & HSLU 2025, IGEM-Digimonitor 2025) antes de publicarlas.
-- [ ] El Beispiel-Audit sigue anonimizado y sin resultados inventados.
+- [ ] El Beispiel-Audit sigue anonimizado y sin resultados inventados («Nachher» es el plan, no resultados).
+- [ ] Valores iniciales de la calculadora (15 clientes, CHF 40, 1 visita, 60 %, Growth): con ellos el neto sale negativo (−CHF 330). Son los del documento de la agencia; decide si los mantienes.
 - [ ] Google Fonts se carga desde Google: valora alojarlas localmente por privacidad.
 - [ ] Probar en iPhone y Android reales, también con «reducir movimiento» activado.
 
