@@ -57,14 +57,16 @@ function anchorFocus() {
 /* Rechner: realistische Bereiche und Beispielwerte je Branche.
    Reihenfolge der Chips: Gastro, Coiffeur, Fitness, Laden, Praxis, Handwerk, Hotel.
    Beispielannahmen (keine Messwerte) – im Bericht als Schätzung gekennzeichnet. */
+// visits: [Startwert, Maximum] – oder null, wenn «Besuche pro Monat» in der Branche nicht sinnvoll ist
+// (Monatsbeitrag, Auftragswert oder Aufenthalt enthalten das schon): dann wird die Zeile ausgeblendet.
 const SECTOR_CALC = [
-  { label: 'Durchschnittsbon',       clients: [20, 40],  ticket: [50, 15, 120, 5],     visits: [1, 2], margin: 65 },
-  { label: 'Preis pro Termin',       clients: [10, 20],  ticket: [80, 30, 250, 5],     visits: [1, 1], margin: 70 },
-  { label: 'Mitgliederbeitrag / Mt.', clients: [8, 15],  ticket: [100, 40, 150, 5],    visits: [1, 1], margin: 80 },
-  { label: 'Durchschnittsbon',       clients: [30, 50],  ticket: [45, 10, 200, 5],     visits: [1, 2], margin: 40 },
-  { label: 'Preis pro Termin',       clients: [10, 20],  ticket: [120, 60, 250, 10],   visits: [1, 2], margin: 60 },
-  { label: 'Auftragswert',           clients: [2, 8],    ticket: [1500, 300, 5000, 100], visits: [1, 1], margin: 35 },
-  { label: 'Umsatz pro Aufenthalt',  clients: [10, 30],  ticket: [300, 100, 600, 10],  visits: [1, 1], margin: 70 },
+  { label: 'Durchschnittsbon',       clients: [20, 40],  ticket: [50, 15, 120, 5],     visits: [1, 4], margin: 65 },
+  { label: 'Preis pro Termin',       clients: [10, 20],  ticket: [80, 30, 250, 5],     visits: null,   margin: 70 },
+  { label: 'Mitgliederbeitrag / Mt.', clients: [8, 15],  ticket: [100, 40, 150, 5],    visits: null,   margin: 80 },
+  { label: 'Durchschnittsbon',       clients: [30, 50],  ticket: [45, 10, 200, 5],     visits: [1, 4], margin: 40 },
+  { label: 'Preis pro Termin',       clients: [10, 20],  ticket: [120, 60, 250, 10],   visits: [1, 3], margin: 60 },
+  { label: 'Auftragswert',           clients: [2, 8],    ticket: [1500, 300, 5000, 100], visits: null, margin: 35 },
+  { label: 'Umsatz pro Aufenthalt',  clients: [10, 30],  ticket: [300, 100, 600, 10],  visits: null,   margin: 70 },
 ];
 
 function calcSectors() {
@@ -81,7 +83,14 @@ function calcSectors() {
     el('l-ticket').textContent = s.label;
     setRange('clients', s.clients[0], 1, s.clients[1]);
     setRange('ticket', s.ticket[0], s.ticket[1], s.ticket[2], s.ticket[3]);
-    setRange('visits', s.visits[0], 1, s.visits[1]);
+    const visitsRow = el('c-visits').closest('label');
+    if (s.visits) {
+      setRange('visits', s.visits[0], 1, s.visits[1]);
+      visitsRow.style.display = '';
+    } else {
+      setRange('visits', 1, 1, 1); // Faktor 1, Regler ausgeblendet
+      visitsRow.style.display = 'none';
+    }
     setRange('margin', s.margin, 20, 80, 5);
     // sections.js rechnet bei «input» neu
     el('c-clients').dispatchEvent(new Event('input', { bubbles: true }));
