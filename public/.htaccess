@@ -12,6 +12,9 @@ DirectoryIndex index.html
   # www → ohne www
   RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
   RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
+  # Kurze Adressen für die rechtlichen Seiten
+  RewriteRule ^impressum/?$ /impressum.html [L]
+  RewriteRule ^datenschutz/?$ /datenschutz.html [L]
 </IfModule>
 
 <IfModule mod_headers.c>

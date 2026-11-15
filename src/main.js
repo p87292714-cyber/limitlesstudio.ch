@@ -1,5 +1,6 @@
 /* Ergänzungen von LIMITLESS über dem Prototyp «Reise» (public/js/*.js):
    Kontaktformular, Kontaktdaten aus Umgebungsvariablen, Barrierefreiheit. */
+import './fonts.css';
 import './form.css';
 import { initContact } from './contact.js';
 import { initEnhance } from './enhance.js';

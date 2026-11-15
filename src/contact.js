@@ -9,8 +9,9 @@ const CONTACT_EMAIL = val('VITE_CONTACT_EMAIL');
 const CONTACT_PHONE = val('VITE_CONTACT_PHONE');
 const WHATSAPP_URL = val('VITE_WHATSAPP_URL');
 const BOOKING_URL = val('VITE_BOOKING_URL');
-const PRIVACY_URL = val('VITE_PRIVACY_URL');
-const LEGAL_URL = val('VITE_LEGAL_URL');
+// Eigene rechtliche Seiten (impressum.html, datenschutz.html); per Umgebungsvariable überschreibbar
+const PRIVACY_URL = val('VITE_PRIVACY_URL') || '/datenschutz.html';
+const LEGAL_URL = val('VITE_LEGAL_URL') || '/impressum.html';
 
 function setLink(id, href) {
   const el = document.getElementById(id);

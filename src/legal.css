@@ -1,0 +1,40 @@
+/* Rechtliche Seiten (Impressum, Datenschutz): leicht, ohne Video */
+:root {
+  --lime: #B6FF3B;
+  --bg: #05070A;
+  --bg-2: #0B0E13;
+  --text: #F3F6EF;
+  --muted: #A3AA9B;
+  --line: rgba(243, 246, 239, .1);
+  --font-d: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-b: "Outfit", system-ui, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(182,255,59,.07), transparent 70%), var(--bg); color: var(--text); font-family: var(--font-b); font-size: 1rem; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+a { color: var(--lime); text-underline-offset: 3px; }
+a:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+
+.l-nav { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.2rem clamp(1.2rem, 5vw, 3rem); border-bottom: 1px solid var(--line); }
+.l-logo { display: inline-flex; align-items: center; gap: .65rem; color: var(--text); text-decoration: none; font-family: var(--font-d); font-weight: 700; font-size: .92rem; letter-spacing: .16em; text-transform: uppercase; }
+.l-logo svg { width: 2.1rem; height: 1.4rem; color: var(--lime); filter: drop-shadow(0 0 7px rgba(182,255,59,.55)); overflow: visible; }
+.l-back { font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; text-decoration: none; }
+
+.l-main { max-width: 46rem; margin: 0 auto; padding: clamp(3rem, 8vw, 6rem) clamp(1.2rem, 5vw, 2rem) 5rem; }
+.l-kicker { margin: 0 0 .8rem; font-size: .72rem; letter-spacing: .28em; text-transform: uppercase; color: var(--lime); }
+.l-main h1 { margin: 0 0 2.5rem; font-family: var(--font-d); font-weight: 800; font-stretch: 112%; font-size: clamp(2.2rem, 6vw, 3.6rem); line-height: 1.02; letter-spacing: -.035em; }
+.l-main h2 { margin: 2.6rem 0 .8rem; font-family: var(--font-d); font-weight: 700; font-stretch: 105%; font-size: 1.2rem; letter-spacing: -.01em; }
+.l-main h3 { margin: 1.6rem 0 .4rem; font-size: 1rem; font-weight: 600; }
+.l-main p, .l-main li { color: #D9DED3; }
+.l-main ul { padding-left: 1.2rem; }
+.l-main li { margin: .25rem 0; }
+.l-card { margin: 0 0 1.5rem; padding: 1.4rem 1.6rem; border: 1px solid var(--line); border-left: 2px solid var(--lime); border-radius: 6px; background: rgba(243,246,239,.025); }
+.l-card p { margin: 0; }
+.l-card p + p { margin-top: .6rem; }
+.l-muted { color: var(--muted) !important; font-size: .88rem; }
+.l-todo { background: rgba(255, 214, 102, .15); color: #ffe39a; padding: 0 .3em; border-radius: 3px; }
+
+.l-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; padding: 2rem clamp(1.2rem, 5vw, 3rem); border-top: 1px solid var(--line); font-size: .82rem; color: var(--muted); }
+.l-foot nav { display: flex; gap: 1.2rem; }
+.l-foot a { color: var(--muted); text-decoration: none; }
+.l-foot a:hover, .l-foot a[aria-current] { color: var(--lime); }

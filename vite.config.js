@@ -49,6 +49,19 @@ function cacheBust() {
 }
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, fileURLToPath(new URL('.', import.meta.url)), '');
-  return { plugins: [siteUrl(env), indexing(env), cacheBust()] };
+  const root = fileURLToPath(new URL('.', import.meta.url));
+  const env = loadEnv(mode, root, '');
+  return {
+    plugins: [siteUrl(env), indexing(env), cacheBust()],
+    build: {
+      rollupOptions: {
+        // Mehrseitig: Startseite + rechtliche Seiten
+        input: {
+          main: root + 'index.html',
+          impressum: root + 'impressum.html',
+          datenschutz: root + 'datenschutz.html',
+        },
+      },
+    },
+  };
 });
