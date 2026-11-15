@@ -1,4 +1,4 @@
-# LIMITLESS — Web de la agencia (Zúrich, alemán suizo) · versión «Reise»
+﻿# LIMITLESS — Web de la agencia (Zúrich, alemán suizo) · versión «Reise»
 
 Página única para **LIMITLESS**, KI-Marketing für lokale Betriebe in Zürich. Todo el contenido está en alemán suizo (`lang="de-CH"`, «ss» en vez de «ß», CHF con apóstrofo, trato de «Sie»).
 
@@ -70,9 +70,9 @@ El botón de reserva, los datos de contacto y los enlaces a Impressum y Datensch
 - [ ] Email, teléfono, WhatsApp y enlace de reserva (`VITE_CONTACT_*`, `VITE_WHATSAPP_URL`, `VITE_BOOKING_URL`).
 - [ ] **Impressum y Datenschutzerklärung** publicados (obligatorios en Suiza, nDSG) y enlazados con `VITE_LEGAL_URL` / `VITE_PRIVACY_URL`.
 - [ ] Destino real del formulario probado de principio a fin.
-- [ ] **Bloque de referencias en «Beispiel-Audit»** (`.slots[data-placeholder="referenzen"]`): ahora muestra `[PLATZHALTER …]` y `[LOGO]`. Sustitúyelo por contenido real o bórralo.
-- [ ] Precios: son recomendados, no validados.
-- [ ] Valores iniciales de la calculadora: con ellos el neto sale **−CHF 330**. Decide si los mantienes.
-- [ ] Logo: el cuadrado lima es provisional (el easter egg se activa con 5 clics en él).
+- [x] Sin referencias inventadas: Sternen y los huecos se han quitado. `#referenz` muestra ahora un **Musterbericht ficticio** (marcado como tal) y el **Pilotprogramm** para los 5 primeros clientes. Cuando haya un cliente real con resultados medidos, se puede añadir su caso ahí.
+- [ ] Precios: estrategia «Intermedio» con precio piloto −30 % (ver [`docs/PREISE.md`](docs/PREISE.md), con la referencia de mercado y sus fuentes). Revísalos antes de publicar.
+- [ ] Valores de ejemplo por sector en la calculadora (`SECTOR_CALC` en `src/enhance.js`): son suposiciones, cámbialas por datos reales cuando los tengas.
+- [x] Logo: signo ∞ en lima (barra, pie, preloader y favicon). El easter egg sigue activándose con 5 clics en él.
 - [ ] Probar en un iPhone real (Safari) y en un Android de gama media, también con «reducir movimiento» y con el sonido activado.
 - [ ] Google Fonts (Archivo, Outfit) se carga desde Google: valora alojarlas localmente por privacidad.

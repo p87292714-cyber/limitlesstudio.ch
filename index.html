@@ -49,7 +49,7 @@
 
   <div id="preloader" role="status" aria-live="polite">
     <div class="preloader-inner">
-      <span class="preloader-mark" aria-hidden="true"></span>
+      <span class="preloader-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z"/></svg></span>
       <p class="preloader-kicker">Zürich</p>
       <p class="preloader-title">Die Reise wird vorbereitet</p>
       <div class="preloader-bar" aria-hidden="true"><span id="preloader-fill"></span></div>
@@ -59,7 +59,7 @@
 
   <header class="nav" id="nav">
     <a class="logo" href="#top" aria-label="LIMITLESS – zur Startseite">
-      <span class="logo-mark" id="logo-mark" aria-hidden="true"></span>
+      <span class="logo-mark" id="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z"/></svg></span>
       <span class="logo-word">LIMITLESS</span>
     </a>
     <div class="nav-right">
@@ -72,7 +72,7 @@
     <nav id="menu" aria-label="Hauptnavigation">
       <a href="#leistungen">Leistungen</a>
       <a href="#ablauf">Ablauf</a>
-      <a href="#referenz">Referenz</a>
+      <a href="#referenz">Beispiel</a>
       <a href="#preise">Rechner</a>
       <a href="#faq">FAQ</a>
       <a href="#kontakt" class="nav-cta">Digital-Check</a>
@@ -206,29 +206,37 @@
 
     <section class="sec sec-alt" id="referenz">
       <div class="wrap">
-        <p class="kicker reveal">Beispiel-Audit</p>
-        <h2 data-split="words">Historisches Restaurant im Limmattal. 4,4 Sterne, Schaufenster von 2015.</h2>
+        <p class="kicker reveal">Musterbericht</p>
+        <h2 data-split="words">So sieht Ihr Digital-Check aus – an einem fiktiven Beispiel.</h2>
+        <p class="lede reveal">«Café am Quartierplatz»: gute Bewertungen, unsichtbares Schaufenster. Ziehen Sie den Regler.</p>
         <div class="ba reveal" id="ba">
           <div class="ba-side ba-before">
             <p class="ba-tag">Vorher · Diagnose</p>
-            <ul><li>Website: Fehler 500 ohne «www»</li><li>Stockfotos statt echter Bilder</li><li>TripAdvisor mit falscher Nummer</li><li>Reservation nur manuell</li><li>Kein Instagram, keine Gutscheine</li><li>Kein Newsletter</li></ul>
+            <ul><li>Google-Profil ohne Öffnungszeiten und eigene Fotos</li><li>Bewertungen bleiben unbeantwortet</li><li>Website lädt langsam auf dem Handy</li><li>Reservation nur per Telefon</li><li>Kein Instagram, keine Gutscheine</li><li>Kein Newsletter, kein eigener Kanal</li></ul>
           </div>
           <div class="ba-side ba-after" id="ba-after">
             <p class="ba-tag">Nachher · Plan</p>
-            <ul><li>Woche 1: Google &amp; Verzeichnisse</li><li>Echte Fotos aus dem Betrieb</li><li>Korrekte Daten überall</li><li>Monat 1: Online-Reservation</li><li>Gutscheine &amp; WhatsApp-Kanal</li><li>Monat 2–3: Video &amp; Newsletter</li></ul>
+            <ul><li>Woche 1: Google-Profil &amp; Verzeichnisse</li><li>Antwort auf jede Bewertung</li><li>Schnelle mobile Seite</li><li>Monat 1: Online-Reservation</li><li>Gutscheine &amp; WhatsApp-Kanal</li><li>Monat 2–3: Video &amp; Newsletter</li></ul>
           </div>
           <div class="ba-handle" id="ba-handle"><span>⟷</span></div>
           <input type="range" min="0" max="100" value="50" id="ba-range" aria-label="Vorher-Nachher-Regler" />
         </div>
-        <p class="tiny reveal">Anonymisiertes Audit bei einem Interessenten. «Nachher» zeigt den Plan, keine gemessenen Resultate.</p>
-        <!-- PLATZHALTER-SLOTS: erst mit echten Inhalten füllen. Nichts erfinden. Vor dem Livegang ersetzen oder entfernen. -->
-        <div class="slots reveal" data-placeholder="referenzen">
-          <p class="slot-kicker">Platzhalter · Bald hier</p>
-          <div class="slot-grid">
-            <figure class="slot slot-case"><span class="slot-ico" aria-hidden="true">＋</span><figcaption>[PLATZHALTER: Erste Fallstudie mit gemessenen Resultaten]</figcaption></figure>
-            <figure class="slot slot-quote"><span class="slot-ico" aria-hidden="true">“</span><figcaption>[PLATZHALTER: Kundenstimme oder Kundenvideo]</figcaption></figure>
-            <div class="slot slot-logos"><span>[LOGO]</span><span>[LOGO]</span><span>[LOGO]</span><span>[LOGO]</span></div>
+        <p class="tiny reveal">Fiktives Beispiel zur Veranschaulichung, kein Kundenprojekt. «Nachher» zeigt einen Plan, keine gemessenen Resultate.</p>
+
+        <div class="pilot reveal" id="pilot">
+          <div class="pilot-head">
+            <p class="kicker">Pilotprogramm</p>
+            <h3>Werden Sie einer unserer ersten 5 Pilotbetriebe.</h3>
+            <p>Wir starten gerade. Statt mit erfundenen Referenzen zu werben, suchen wir fünf Betriebe in Zürich, mit denen wir echte Resultate aufbauen.</p>
           </div>
+          <ul class="pilot-list">
+            <li><b>−30 %</b><span>auf Monats- und Einrichtungsgebühr</span></li>
+            <li><b>12 Monate</b><span>Pilotpreis garantiert</span></li>
+            <li><b>Direkt</b><span>betreut von den Gründern</span></li>
+            <li><b>Tag 30</b><span>Review mit Ihren Zahlen</span></li>
+          </ul>
+          <p class="pilot-deal">Ihre Gegenleistung: ehrliches Feedback und – nur wenn Sie zufrieden sind – eine Fallstudie mit Ihren echten Zahlen.</p>
+          <a class="btn magnetic" href="#anfrage">Pilotplatz anfragen</a>
         </div>
       </div>
     </section>
@@ -249,38 +257,39 @@
               <button type="button" data-kpi="Anteil Direktbuchungen und gesparte Provision.">Hotel</button>
             </div>
             <p class="tiny" id="calc-kpi">KPI: Zusätzliche Gedecke pro Woche und online verkaufte Gutscheine.</p>
-            <label class="sl"><span>Neue oder zurückgewonnene Kunden / Monat <b id="o-clients">15</b></span><input type="range" id="c-clients" min="1" max="100" value="15"></label>
-            <label class="sl"><span>Durchschnittsbon (CHF) <b id="o-ticket">40</b></span><input type="range" id="c-ticket" min="5" max="300" step="5" value="40"></label>
-            <label class="sl"><span>Besuche pro Kunde / Monat <b id="o-visits">1</b></span><input type="range" id="c-visits" min="1" max="8" value="1"></label>
-            <label class="sl"><span>Deckungsbeitrag (%) <b id="o-margin">60</b></span><input type="range" id="c-margin" min="10" max="90" step="5" value="60"></label>
-            <div class="seg" id="c-fee" role="group" aria-label="Paket">
-              <button type="button" data-fee="290">Starter 290</button>
-              <button type="button" data-fee="690" class="is-on">Growth 690</button>
-              <button type="button" data-fee="1290">Premium 1'290</button>
+            <label class="sl"><span>Neue oder zurückgewonnene Kunden / Monat <b id="o-clients">20</b></span><input type="range" id="c-clients" min="1" max="40" value="20"></label>
+            <label class="sl"><span><span id="l-ticket">Durchschnittsbon</span> (CHF) <b id="o-ticket">50</b></span><input type="range" id="c-ticket" min="15" max="120" step="5" value="50"></label>
+            <label class="sl"><span>Besuche pro Kunde / Monat <b id="o-visits">1</b></span><input type="range" id="c-visits" min="1" max="2" value="1"></label>
+            <label class="sl"><span>Deckungsbeitrag (%) <b id="o-margin">65</b></span><input type="range" id="c-margin" min="20" max="80" step="5" value="65"></label>
+            <div class="seg" id="c-fee" role="group" aria-label="Paket (Pilotpreis)">
+              <button type="button" data-fee="490" class="is-on">Starter 490</button>
+              <button type="button" data-fee="1040">Growth 1'040</button>
+              <button type="button" data-fee="1880">Premium 1'880</button>
             </div>
           </div>
           <div class="calc-out">
-            <div><span>Zusätzlicher Umsatz</span><b id="r-rev">–</b></div>
-            <div><span>Zusätzlicher Deckungsbeitrag</span><b id="r-con">–</b></div>
+            <div><span>Geschätzter Zusatzumsatz / Monat</span><b id="r-rev">–</b></div>
+            <div><span>Davon Deckungsbeitrag</span><b id="r-con">–</b></div>
             <div class="big"><span>Netto nach Paket</span><b id="r-net">–</b></div>
             <div><span>Kunden / Monat, um das Paket zu decken</span><b id="r-be">–</b></div>
-            <p class="tiny">Schätzung mit Ihren Annahmen, kein Versprechen. Preise exkl. MWST.</p>
+            <p class="tiny">Beispielwerte je Branche – passen Sie sie an Ihren Betrieb an. Schätzung, kein Versprechen. Paket zum Pilotpreis, exkl. MWST.</p>
           </div>
         </div>
 
         <p class="kicker reveal" style="margin-top:5rem">Pakete &amp; Preise</p>
         <h2 data-split="words">3 Monate fix, dann monatlich kündbar.</h2>
         <div class="seg seg-center reveal" id="price-mode" role="group" aria-label="Preisansicht"><button type="button" class="is-on" data-m="month">Monatlich</button><button type="button" data-m="setup">Einrichtung</button></div>
+        <p class="pilot-note reveal">Pilotpreis <b>−30 %</b> für die ersten 5 Betriebe, 12 Monate garantiert. Danach gilt der reguläre Preis.</p>
         <div class="plans">
-          <article class="plan reveal tilt" data-plan="0"><h3>Digital-Check</h3><p class="price" data-month="CHF 0" data-setup="CHF 0">CHF 0</p><p class="one">15 Punkte, 1 Seite, Video, 3 Sofortmassnahmen.</p></article>
-          <article class="plan reveal tilt" data-plan="290"><h3>Starter «Sichtbar»</h3><p class="price" data-month="CHF 290/Mt." data-setup="CHF 990">CHF 290/Mt.</p><p class="one">Google, Verzeichnisse, Bewertungen, 4 Videos.</p><details><summary>Alles anzeigen</summary><ul><li>Optimiertes Google-Profil</li><li>Korrigierte Verzeichnisse</li><li>Antworten auf Bewertungen (KI, geprüft)</li><li>QR-Code für Bewertungen</li><li>4 Kurzvideos / Monat</li><li>Monatsbericht</li></ul></details></article>
-          <article class="plan plan-hot reveal tilt" data-plan="690"><span class="badge">Beliebt</span><h3>Growth «Voll»</h3><p class="price" data-month="CHF 690/Mt." data-setup="CHF 2'490">CHF 690/Mt.</p><p class="one">Starter + Website, Buchung, WhatsApp, 10 Videos.</p><details><summary>Alles anzeigen</summary><ul><li>Alles aus Starter</li><li>Website-Reparatur oder One-Pager</li><li>Online-Reservation / Termine</li><li>WhatsApp Business</li><li>10 Kurzvideos / Monat</li><li>Newsletter &amp; Gutschein-Shop</li></ul></details></article>
-          <article class="plan reveal tilt" data-plan="1290"><h3>Premium «Automatisch»</h3><p class="price" data-month="CHF 1'290/Mt." data-setup="CHF 4'900">CHF 1'290/Mt.</p><p class="one">Growth + Chatbot, CRM, Werbung, 16 Videos.</p><details><summary>Alles anzeigen</summary><ul><li>Website 5–10 Seiten (DE/EN)</li><li>Chatbot Web &amp; WhatsApp</li><li>CRM mit Automationen</li><li>Kundenbindung &amp; Werbung</li><li>16 Videos / Monat, 1 Dreh pro Quartal</li></ul></details></article>
+          <article class="plan reveal tilt" data-plan="0"><h3>Digital-Check</h3><p class="price" data-month="CHF 0" data-setup="CHF 0">CHF 0</p><p class="regular">Immer kostenlos</p><p class="one">15 Punkte, 1 Seite, Video, 3 Sofortmassnahmen.</p></article>
+          <article class="plan reveal tilt" data-plan="490"><h3>Starter «Sichtbar»</h3><p class="price" data-month="CHF 490/Mt." data-setup="CHF 690">CHF 490/Mt.</p><p class="regular" data-month="Pilotpreis · regulär CHF 690/Mt." data-setup="Pilotpreis · regulär CHF 990">Pilotpreis · regulär CHF 690/Mt.</p><p class="one">Google, Verzeichnisse, Bewertungen, 4 Videos.</p><details><summary>Alles anzeigen</summary><ul><li>Optimiertes Google-Profil</li><li>Korrigierte Verzeichnisse</li><li>Antworten auf Bewertungen (KI, geprüft)</li><li>QR-Code für Bewertungen</li><li>4 Kurzvideos / Monat</li><li>Monatsbericht</li></ul></details></article>
+          <article class="plan plan-hot reveal tilt" data-plan="1040"><span class="badge">Beliebt</span><h3>Growth «Voll»</h3><p class="price" data-month="CHF 1'040/Mt." data-setup="CHF 1'740">CHF 1'040/Mt.</p><p class="regular" data-month="Pilotpreis · regulär CHF 1'490/Mt." data-setup="Pilotpreis · regulär CHF 2'490">Pilotpreis · regulär CHF 1'490/Mt.</p><p class="one">Starter + Website, Buchung, WhatsApp, 10 Videos.</p><details><summary>Alles anzeigen</summary><ul><li>Alles aus Starter</li><li>Website-Reparatur oder One-Pager</li><li>Online-Reservation / Termine</li><li>WhatsApp Business</li><li>10 Kurzvideos / Monat</li><li>Newsletter &amp; Gutschein-Shop</li></ul></details></article>
+          <article class="plan reveal tilt" data-plan="1880"><h3>Premium «Automatisch»</h3><p class="price" data-month="CHF 1'880/Mt." data-setup="CHF 3'430">CHF 1'880/Mt.</p><p class="regular" data-month="Pilotpreis · regulär CHF 2'690/Mt." data-setup="Pilotpreis · regulär CHF 4'900">Pilotpreis · regulär CHF 2'690/Mt.</p><p class="one">Growth + Chatbot, CRM, Werbung, 16 Videos.</p><details><summary>Alles anzeigen</summary><ul><li>Website 5–10 Seiten (DE/EN)</li><li>Chatbot Web &amp; WhatsApp</li><li>CRM mit Automationen</li><li>Kundenbindung &amp; Werbung</li><li>16 Videos / Monat, 1 Dreh pro Quartal</li></ul></details></article>
         </div>
         <details class="extras reveal"><summary>Extras &amp; Projekt «Marke &amp; App»</summary>
           <ul class="extra-list">
             <li><span>Projekt «Marke &amp; App»</span><b>CHF 6'000–12'000</b></li>
-            <li><span>4 zusätzliche Kurzvideos</span><b>CHF 390</b></li>
+            <li><span>4 zusätzliche Kurzvideos</span><b>CHF 590</b></li>
             <li><span>Foto- und Videodrehtag</span><b>CHF 900–1'600</b></li>
             <li><span>Chatbot einzeln</span><b>CHF 1'200 + 120/Mt.</b></li>
             <li><span>Gutschein-Shop</span><b>CHF 490</b></li>
@@ -375,7 +384,7 @@
   </main>
   <footer class="foot">
     <div class="wrap foot-in">
-      <span class="logo"><span class="logo-mark" aria-hidden="true"></span><span class="logo-word">LIMITLESS</span></span>
+      <span class="logo"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z"/></svg></span><span class="logo-word">LIMITLESS</span></span>
       <span>KI-Marketing für lokale Betriebe in Zürich · © <span id="year"></span></span>
       <span class="foot-links"><a id="link-legal" href="#">Impressum</a> <a id="link-privacy" href="#">Datenschutz</a></span>
     </div>

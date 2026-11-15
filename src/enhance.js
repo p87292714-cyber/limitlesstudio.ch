@@ -54,9 +54,56 @@ function anchorFocus() {
   }));
 }
 
+/* Rechner: realistische Bereiche und Beispielwerte je Branche.
+   Reihenfolge der Chips: Gastro, Coiffeur, Fitness, Laden, Praxis, Handwerk, Hotel.
+   Beispielannahmen (keine Messwerte) – im Bericht als Schätzung gekennzeichnet. */
+const SECTOR_CALC = [
+  { label: 'Durchschnittsbon',       clients: [20, 40],  ticket: [50, 15, 120, 5],     visits: [1, 2], margin: 65 },
+  { label: 'Preis pro Termin',       clients: [10, 20],  ticket: [80, 30, 250, 5],     visits: [1, 1], margin: 70 },
+  { label: 'Mitgliederbeitrag / Mt.', clients: [8, 15],  ticket: [100, 40, 150, 5],    visits: [1, 1], margin: 80 },
+  { label: 'Durchschnittsbon',       clients: [30, 50],  ticket: [45, 10, 200, 5],     visits: [1, 2], margin: 40 },
+  { label: 'Preis pro Termin',       clients: [10, 20],  ticket: [120, 60, 250, 10],   visits: [1, 2], margin: 60 },
+  { label: 'Auftragswert',           clients: [2, 8],    ticket: [1500, 300, 5000, 100], visits: [1, 1], margin: 35 },
+  { label: 'Umsatz pro Aufenthalt',  clients: [10, 30],  ticket: [300, 100, 600, 10],  visits: [1, 1], margin: 70 },
+];
+
+function calcSectors() {
+  const chips = $$('#calc-sector button');
+  if (!chips.length) return;
+  const el = (id) => document.getElementById(id);
+  const setRange = (id, value, min, max, step = 1) => {
+    const r = el('c-' + id);
+    r.min = min; r.max = max; r.step = step; r.value = value;
+  };
+  const apply = (i) => {
+    const s = SECTOR_CALC[i];
+    if (!s) return;
+    el('l-ticket').textContent = s.label;
+    setRange('clients', s.clients[0], 1, s.clients[1]);
+    setRange('ticket', s.ticket[0], s.ticket[1], s.ticket[2], s.ticket[3]);
+    setRange('visits', s.visits[0], 1, s.visits[1]);
+    setRange('margin', s.margin, 20, 80, 5);
+    // sections.js rechnet bei «input» neu
+    el('c-clients').dispatchEvent(new Event('input', { bubbles: true }));
+  };
+  chips.forEach((b, i) => b.addEventListener('click', () => apply(i)));
+  // sections.js startet mit einem fest eingetragenen Paketpreis: auf den aktiven Knopf abgleichen
+  document.querySelector('#c-fee button.is-on')?.click();
+  apply(Math.max(0, chips.findIndex((b) => b.classList.contains('is-on'))));
+}
+
+/* Preise: Zeile «regulär …» wechselt mit Monatlich / Einrichtung */
+function priceRegular() {
+  $$('#price-mode button').forEach((b) => b.addEventListener('click', () => {
+    $$('.plan .regular[data-month]').forEach((p) => { p.textContent = p.dataset[b.dataset.m]; });
+  }));
+}
+
 export function initEnhance() {
   syncPressed();
   cards();
   menu();
   anchorFocus();
+  calcSectors();
+  priceRegular();
 }
