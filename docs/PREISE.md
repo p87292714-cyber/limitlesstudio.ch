@@ -1,4 +1,4 @@
-# Precios LIMITLESS: referencia de mercado y decisión (15-11-2026)
+# Precios LIMITLESS: referencia de mercado y decisión (15-11-2026, +8 % aplicado)
 
 ## Estrategia elegida: «Intermedio»
 
@@ -7,11 +7,11 @@ Precio regular claramente por debajo del mercado suizo, para que sea accesible a
 | Paquete | Pilot / mes | Regular / mes | Pilot alta | Regular alta | Referencia de mercado / mes* |
 |---|---|---|---|---|---|
 | Digital-Check | CHF 0 | CHF 0 | – | – | – |
-| Starter «Sichtbar» | **CHF 490** | CHF 690 | CHF 690 | CHF 990 | ≈ CHF 1'800 |
-| Growth «Voll» | **CHF 1'040** | CHF 1'490 | CHF 1'740 | CHF 2'490 | ≈ CHF 3'800 |
-| Premium «Automatisch» | **CHF 1'880** | CHF 2'690 | CHF 3'430 | CHF 4'900 | ≈ CHF 6'000 |
+| Starter «Sichtbar» | **CHF 525** | CHF 750 | CHF 750 | CHF 1'070 | ≈ CHF 1'800 |
+| Growth «Voll» | **CHF 1'130** | CHF 1'610 | CHF 1'880 | CHF 2'690 | ≈ CHF 3'800 |
+| Premium «Automatisch» | **CHF 2'030** | CHF 2'900 | CHF 3'700 | CHF 5'290 | ≈ CHF 6'000 |
 
-Extras: el único cambio es «4 zusätzliche Kurzvideos», que pasa de CHF 390 a CHF 590 (en el mercado, unos CHF 1'500 por 4 vídeos). Los demás extras ya estaban dentro de los rangos del mercado.
+Subida del 8 % (15-11-2026) en paquetes, altas y extras, redondeada a cifras limpias. El piloto sigue siendo el regular −30 % (redondeado). Extras actuales: Marke & App CHF 6'500–13'000 · 4 vídeos extra CHF 640 · día de rodaje CHF 970–1'730 · chatbot CHF 1'300 + 130/mes · tienda de vales CHF 530 · gestión de anuncios CHF 420/mes + presupuesto · traducción CHF 380 por idioma · landing de evento CHF 490.
 
 \* **Referencia de mercado** = suma de los componentes de cada paquete con precios publicados por agencias suizas:
 - **Starter:** perfil de Google (≈ 300/mes) + 4 vídeos (≈ 1'500/mes).

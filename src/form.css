@@ -3,6 +3,8 @@
 .pilot-note { margin: 1.2rem auto 0; text-align: center; font-size: .92rem; color: var(--text) !important; }
 .pilot-note b { color: var(--lime); }
 .plan .regular { margin-top: .35rem; font-size: .8rem; color: var(--muted) !important; }
+/* Im Rechner gewähltes Paket klar beschriften (sonst wirkt es wie das «Top-Paket») */
+.plan.is-match::after { content: "Im Rechner gewählt"; position: absolute; left: 1.2rem; top: -.7rem; padding: .2rem .55rem; font-size: .62rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--lime); background: var(--bg); border: 1px solid var(--lime); border-radius: 2px; }
 /* Pilotprogramm statt Referenz-Platzhalter */
 .pilot { margin-top: 3rem; padding: clamp(1.4rem, 3vw, 2.4rem); border: 1px solid var(--lime); border-radius: 8px; background: linear-gradient(150deg, rgba(182,255,59,.10), rgba(7,10,14,.55) 55%); box-shadow: 0 0 40px rgba(182,255,59,.10); }
 .pilot-head h3 { font-size: clamp(1.4rem, 2.6vw, 2rem); margin: .5rem 0 .8rem; }
