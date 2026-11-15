@@ -51,8 +51,18 @@
   const frames = new Array(SET.count);
   const state = new Uint8Array(SET.count); // 0 = offen, 1 = angefragt, 2 = geladen
   let points = [];            // [{y, t}]
-  let targetT = 0, curT = 0, drawnIdx = -1, lastY = 0, vel = 0;
+  let targetT = 0, curT = 0, drawnIdx = -1, drawnBitmap = false, lastY = 0, vel = 0, dir = 1;
   let lenis = null;
+  let dirty = true; // DOM-Overlays neu schreiben (Start, Resize)
+
+  /* ImageBitmap-Cache (nur Desktop): fertig skalierte Bitmaps um das aktuelle Bild herum.
+     Aus einem Blob erzeugt, damit das Dekodieren nicht synchron im Haupt-Thread passiert. */
+  const BM = { ahead: 10, behind: 3, inflight: 4, near: 3 };
+  const useBitmaps = !isMobile && typeof createImageBitmap === "function";
+  const bitmaps = new Map(); // idx → ImageBitmap
+  const pendingBm = new Set();
+  const failedBm = new Set();
+  let bmGen = 0, bmW = 0, bmH = 0;
   window.__journey = { t: 0, vel: 0, duration: DURATION };
 
   const urlOf = (i) => `${SET.path}${String(i + 1).padStart(4, "0")}.webp`;
@@ -64,15 +74,26 @@
     const cover = Math.max(vw / SET.w, vh / SET.h);          // CSS-px pro Bild-px
     const dpr = Math.min(devicePixelRatio || 1, 2, Math.max(1, 1 / cover)); // nie mehr Pixel als das Bild hat
     const w = Math.round(vw * 1.04 * dpr), h = Math.round(vh * 1.04 * dpr);
-    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; drawnIdx = -1; }
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w; canvas.height = h; drawnIdx = -1; dirty = true;
+      clearBitmaps();
+      const s = Math.max(w / SET.w, h / SET.h);
+      bmW = Math.round(SET.w * s); bmH = Math.round(SET.h * s);
+    }
+  }
+  function placeX(dw) {
+    // Hochformat: Bildausschnitt folgt dem Astronauten (Gang rechts der Mitte, danach zentriert)
+    const fx = 0.5 + 0.15 * (1 - smooth(5.2, 6.6, curT));
+    return clamp(canvas.width / 2 - fx * dw, canvas.width - dw, 0);
   }
   function draw(img) {
     const cw = canvas.width, ch = canvas.height, iw = img.naturalWidth, ih = img.naturalHeight;
     const s = Math.max(cw / iw, ch / ih), dw = iw * s, dh = ih * s;
-    // Hochformat: Bildausschnitt folgt dem Astronauten (Gang rechts der Mitte, danach zentriert)
-    const fx = 0.5 + 0.15 * (1 - smooth(5.2, 6.6, curT));
-    const x = clamp(cw / 2 - fx * dw, cw - dw, 0);
-    ctx.drawImage(img, x, (ch - dh) / 2, dw, dh);
+    ctx.drawImage(img, placeX(dw), (ch - dh) / 2, dw, dh);
+  }
+  function drawBitmap(bm) {
+    // bereits auf «cover»-Grösse skaliert: 1:1 zeichnen, ohne erneutes Skalieren
+    ctx.drawImage(bm, Math.round(placeX(bm.width)), Math.round((canvas.height - bm.height) / 2));
   }
   function nearestLoaded(i) {
     if (state[i] === 2) return i;
@@ -82,11 +103,70 @@
     }
     return -1;
   }
+  function nearestBitmap(i) {
+    if (bitmaps.has(i)) return i;
+    for (let d = 1; d <= BM.near; d++) {
+      if (bitmaps.has(i - d)) return i - d;
+      if (bitmaps.has(i + d)) return i + d;
+    }
+    return -1;
+  }
   function render() {
-    const j = nearestLoaded(idxOf(curT));
-    if (j < 0 || j === drawnIdx) return;
+    const i = idxOf(curT);
+    // 1) exaktes Bitmap, 2) nächstes Bitmap (±3), 3) erst zuletzt das <img>
+    const b = useBitmaps ? nearestBitmap(i) : -1;
+    if (b >= 0) {
+      if (b === drawnIdx && drawnBitmap) return;
+      drawBitmap(bitmaps.get(b));
+      drawnIdx = b; drawnBitmap = true;
+      return;
+    }
+    const j = nearestLoaded(i);
+    if (j < 0 || (j === drawnIdx && !drawnBitmap)) return;
     draw(frames[j]);
-    drawnIdx = j;
+    drawnIdx = j; drawnBitmap = false;
+  }
+
+  /* ---------- ImageBitmap-Fenster um das aktuelle Bild ---------- */
+  function clearBitmaps() {
+    bmGen++;
+    bitmaps.forEach((bm) => bm.close && bm.close());
+    bitmaps.clear();
+    pendingBm.clear();
+  }
+  function makeBitmap(i) {
+    const gen = bmGen;
+    pendingBm.add(i);
+    fetch(frames[i].src)
+      .then((r) => r.blob())
+      .then((blob) => createImageBitmap(blob, { resizeWidth: bmW, resizeHeight: bmH, resizeQuality: "medium" }))
+      .then((bm) => {
+        pendingBm.delete(i);
+        const c = idxOf(curT), lo = c - (dir > 0 ? BM.behind : BM.ahead), hi = c + (dir > 0 ? BM.ahead : BM.behind);
+        if (gen !== bmGen || i < lo || i > hi) { bm.close(); return; } // veraltet oder schon aus dem Fenster
+        bitmaps.set(i, bm);
+      })
+      .catch(() => { pendingBm.delete(i); failedBm.add(i); });
+  }
+  function pumpBitmaps() {
+    if (!useBitmaps || !bmW) return;
+    const c = idxOf(curT);
+    const lo = c - (dir > 0 ? BM.behind : BM.ahead), hi = c + (dir > 0 ? BM.ahead : BM.behind);
+    // Bitmaps ausserhalb des Fensters freigeben
+    bitmaps.forEach((bm, i) => { if (i < lo || i > hi) { bm.close(); bitmaps.delete(i); } });
+    // fehlende erzeugen: zuerst das aktuelle, dann in Scrollrichtung, dann dahinter
+    if (pendingBm.size >= BM.inflight) return;
+    const order = [c];
+    for (let d = 1; d <= BM.ahead; d++) {
+      order.push(c + dir * d);
+      if (d <= BM.behind) order.push(c - dir * d);
+    }
+    for (const i of order) {
+      if (pendingBm.size >= BM.inflight) break;
+      if (i < 0 || i >= SET.count || i < lo || i > hi) continue;
+      if (bitmaps.has(i) || pendingBm.has(i) || failedBm.has(i) || state[i] !== 2) continue;
+      makeBitmap(i);
+    }
   }
 
   /* ---------- Laden: Hero zuerst, Rest progressiv (grob → fein) ---------- */
@@ -162,13 +242,19 @@
   }
 
   /* ---------- Hero-Texte ---------- */
-  function updateOverlays() {
+  let lastP = -1;
+  function updateOverlays(force) {
     const max = Math.max(1, hero.offsetHeight - innerHeight);
     const p = clamp(scrollY / max, 0, 1);
+    // Nur im Hero arbeiten: ausserhalb bleibt p = 1 und es ändert sich nichts
+    if (p === lastP && !force) return;
+    lastP = p;
     overlays.forEach((el) => {
       const a = +el.dataset.start, b = +el.dataset.end, f = +(el.dataset.fade || 0.05);
       let o = 0;
       if (p >= a && p <= b) o = Math.min(a <= 0 ? 1 : clamp((p - a) / f, 0, 1), b >= 1 ? 1 : clamp((b - p) / f, 0, 1));
+      if (o === el._o && !force) return; // nur schreiben, wenn sich die Deckkraft ändert
+      el._o = o;
       el.style.opacity = o;
       const dy = (1 - o) * -24;
       if (el.classList.contains("scroll-hint")) el.style.transform = `translateX(-50%) translateY(${(1 - o) * 10}px)`;
@@ -179,13 +265,15 @@
   }
 
   /* ---------- Overlays aus der Videozeit ---------- */
-  let lastCh = -1;
+  let lastCh = -1, lastWipe = "", lastMist = "", lastHud = "";
   function updateFx(t) {
-    // Blitz als Wischer zwischen «Sprung» und «Leistungen»
-    const flash = 1 - smooth(0, 0.42, Math.abs(t - 6.8));
-    wipe.style.opacity = (flash * 0.92).toFixed(3);
-    mist.style.opacity = (smooth(15.5, 16.5, t) * 0.5).toFixed(3);
-    if (hudT) hudT.textContent = t.toFixed(1).padStart(4, "0");
+    // Blitz als Wischer zwischen «Sprung» und «Leistungen» – nur schreiben, wenn sich etwas ändert
+    const wo = ((1 - smooth(0, 0.42, Math.abs(t - 6.8))) * 0.92).toFixed(3);
+    if (wo !== lastWipe) { wipe.style.opacity = wo; lastWipe = wo; }
+    const mo = (smooth(15.5, 16.5, t) * 0.5).toFixed(3);
+    if (mo !== lastMist) { mist.style.opacity = mo; lastMist = mo; }
+    const ht = t.toFixed(1).padStart(4, "0");
+    if (hudT && ht !== lastHud) { hudT.textContent = ht; lastHud = ht; }
     let ch = 0; CHAPTERS.forEach((c, k) => { if (t >= c) ch = k; });
     if (ch !== lastCh) { lastCh = ch; hudLinks.forEach((a, k) => a.classList.toggle("is-on", k === ch)); document.body.dataset.chapter = ch; }
   }
@@ -193,14 +281,20 @@
   function tick() {
     const y = scrollY;
     const dy = y - lastY; lastY = y;
+    if (dy) dir = dy > 0 ? 1 : -1;
     vel += (dy - vel) * 0.25;
+    if (Math.abs(vel) < 0.01) vel = 0;
     targetT = timeAt(y);
     const d = targetT - curT;
     curT = Math.abs(d) < 0.002 ? targetT : curT + d * (isMobile ? 0.22 : 0.3);
     window.__journey.t = curT; window.__journey.vel = vel;
-    render();
+    pumpBitmaps();
+    render(); // darf weiterlaufen: zeichnet nur, wenn ein besseres Bild bereit ist
+    // Seite steht still: keine DOM-Schreibzugriffe
+    if (dy === 0 && d === 0 && vel === 0 && !dirty) return;
+    const force = dirty; dirty = false;
     updateFx(curT);
-    updateOverlays();
+    updateOverlays(force);
   }
 
   /* ---------- Fokus: Hintergrund dimmen/weichzeichnen, solange Text im Bild ist ---------- */
@@ -224,11 +318,48 @@
 
   function setupLenis() {
     if (typeof Lenis === "undefined" || reduce) return;
-    lenis = new Lenis({ duration: 1.15, smoothWheel: true, syncTouch: false });
+    lenis = new Lenis({ lerp: 0.12, wheelMultiplier: 1, touchMultiplier: 1, smoothWheel: true, syncTouch: false });
     window.__lenis = lenis;
     lenis.on("scroll", ScrollTrigger.update);
     gsap.ticker.add((time) => lenis.raf(time * 1000));
     gsap.ticker.lagSmoothing(0);
+    setupKeyboard();
+  }
+
+  /* Tastatur über Lenis: gleich weich wie Rad/Trackpad */
+  function setupKeyboard() {
+    addEventListener("keydown", (e) => {
+      if (!lenis || e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+      const t = e.target;
+      if (t && t.closest) {
+        if (t.isContentEditable || t.closest("input, textarea, select, [contenteditable]:not([contenteditable='false'])")) return;
+      }
+      const page = innerHeight * 0.85;
+      let step = null, to = null;
+      switch (e.key) {
+        case "ArrowDown": step = 140; break;
+        case "ArrowUp": step = -140; break;
+        case "PageDown": step = page; break;
+        case "PageUp": step = -page; break;
+        case " ":
+          if (t && t.closest && t.closest("button, a, summary")) return; // Leertaste aktiviert das Element
+          step = e.shiftKey ? -page : page; break;
+        case "Home": to = 0; break;
+        case "End": to = lenis.limit; break;
+        default: return;
+      }
+      e.preventDefault();
+      const dest = to !== null ? to : clamp(lenis.targetScroll + step, 0, lenis.limit);
+      // programmatic: false → targetScroll wird sofort das Ziel (wie beim Rad),
+      // sonst überschreibt Lenis es bei jedem Frame und schnelle Tastendrücke addieren sich nicht.
+      lenis.scrollTo(dest, { lerp: 0.1, programmatic: false });
+    });
+    // Nach Mausklick den Fokus vom Knopf nehmen, damit die Leertaste wieder scrollt
+    addEventListener("pointerup", (e) => {
+      if (e.pointerType !== "mouse") return;
+      const el = e.target && e.target.closest && e.target.closest("button, summary");
+      if (el) el.blur();
+    });
   }
 
   async function initReduced() {
@@ -256,7 +387,7 @@
     setupLenis();
     ScrollTrigger.addEventListener("refresh", computePoints);
     setupFocus();
-    addEventListener("resize", () => { resize(); ScrollTrigger.refresh(); });
+    addEventListener("resize", () => { resize(); }); // ScrollTrigger refresht selbst (mit Debounce)
 
     const t0 = performance.now();
     await loadHero((f) => { const p = Math.round(f * 100); preFill.style.width = p + "%"; prePct.textContent = p + "%"; });
@@ -267,13 +398,13 @@
       if (lenis) lenis.scrollTo(y, { immediate: true, force: true }); else scrollTo(0, y);
       lastY = scrollY; curT = targetT = timeAt(scrollY);
     }
-    render(); updateFx(curT); updateOverlays();
+    render(); updateFx(curT); updateOverlays(true);
     gsap.ticker.add(tick);
     loadRest();
     const wait = Math.max(0, 350 - (performance.now() - t0));
     setTimeout(hidePreloader, wait);
   }
 
-  window.__journeyDebug = () => ({ points, curT, targetT, loaded: state.reduce((a, b) => a + (b === 2), 0), count: SET.count, set: isMobile ? "mobile" : "desktop" });
+  window.__journeyDebug = () => ({ points, curT, targetT, loaded: state.reduce((a, b) => a + (b === 2), 0), count: SET.count, set: isMobile ? "mobile" : "desktop", bitmaps: [...bitmaps.keys()].sort((a, b) => a - b), pendingBm: pendingBm.size, failedBm: failedBm.size, drawnIdx, drawnBitmap, bmSize: [bmW, bmH] });
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 })();

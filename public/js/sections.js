@@ -256,11 +256,18 @@
       cur.classList.toggle("is-label", !!text);
       lab.textContent = text || "";
     });
+    let pmx = NaN, pmy = NaN;
     (function loop() {
-      rx += (mx - rx) * 0.2; ry += (my - ry) * 0.2; gx += (mx - gx) * 0.15; gy += (my - gy) * 0.15;
-      dot.style.transform = `translate(${mx}px,${my}px)`;
-      ringEl.style.transform = `translate(${rx}px,${ry}px)`;
-      glow.style.transform = `translate(${gx}px,${gy}px)`;
+      // Cursor steht still und Ring/Glow sind angekommen: nichts schreiben
+      const settled = Math.abs(mx - rx) < 0.1 && Math.abs(my - ry) < 0.1 && Math.abs(mx - gx) < 0.1 && Math.abs(my - gy) < 0.1;
+      if (!(settled && mx === pmx && my === pmy)) {
+        if (settled) { rx = gx = mx; ry = gy = my; }
+        else { rx += (mx - rx) * 0.2; ry += (my - ry) * 0.2; gx += (mx - gx) * 0.15; gy += (my - gy) * 0.15; }
+        dot.style.transform = `translate(${mx}px,${my}px)`;
+        ringEl.style.transform = `translate(${rx}px,${ry}px)`;
+        glow.style.transform = `translate(${gx}px,${gy}px)`;
+        pmx = mx; pmy = my;
+      }
       requestAnimationFrame(loop);
     })();
     $$(".magnetic").forEach((b) => {
@@ -327,12 +334,12 @@
   }
   {
     const tl = gapTl("#finale");
-    tl.fromTo("#finale .split-c", { opacity: 0, yPercent: 60, filter: "blur(6px)" }, { opacity: 1, yPercent: 0, filter: "blur(0px)", stagger: 0.008, duration: 0.12 }, 0.1)
+    tl.fromTo("#finale .split-c", { opacity: 0, yPercent: 60 }, { opacity: 1, yPercent: 0, stagger: 0.008, duration: 0.12 }, 0.1)
       .fromTo("#finale .btn", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.12 }, 0.45);
   }
 
   // Zwischenspiele lösen sich beim Verlassen auf (weicher Übergang zur nächsten Sektion)
-  $$(".gap").forEach((g) => gsap.to($(".gap-sticky", g), { opacity: 0, y: -70, filter: "blur(8px)", ease: "none", scrollTrigger: { trigger: g, start: "bottom bottom", end: "bottom 35%", scrub: true } }));
+  $$(".gap").forEach((g) => gsap.to($(".gap-sticky", g), { opacity: 0, y: -70, ease: "none", scrollTrigger: { trigger: g, start: "bottom bottom", end: "bottom 35%", scrub: true } }));
 
   $$("[data-count]").forEach((el) => {
     const o = { v: 0 };

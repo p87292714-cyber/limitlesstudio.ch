@@ -1,0 +1,22 @@
+/* Leistung auf dem Desktop: keine Filter auf dem Canvas, kein Backdrop-Blur.
+   Wird nach journey.css geladen. Mobil (≤ 767 px) bleibt unverändert. */
+@media (min-width: 768px) {
+  /* Fokus-Modus ohne filter: blur() – stattdessen eine dunkle Ebene über dem Canvas */
+  #bg-canvas,
+  body.bg-focus #bg-canvas { filter: none; transition: none; }
+  .stage::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: #05070A; opacity: 0; transition: opacity .6s;
+  }
+  body.bg-focus .stage::after { opacity: .42; }
+
+  /* Glas ohne backdrop-filter, dafür dichter */
+  .sec:not(.hscroll) > .wrap,
+  .hs-head { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--glass-strong); }
+  .tcard-in { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(7, 10, 14, .84); }
+  .foot { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(3, 4, 6, .94); }
+
+  /* Körnung ohne Mischmodus */
+  .stage-grain,
+  .hero-grain { mix-blend-mode: normal; opacity: .035; }
+}
