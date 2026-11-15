@@ -56,7 +56,16 @@ El prototipo «Reise» está integrado **sin reconstruirlo**: sus archivos está
 
 El botón de reserva, los datos de contacto y los enlaces a Impressum y Datenschutz **solo se muestran si están configurados** (ver `.env.example`).
 
-## Despliegue (Vercel o Netlify)
+## Publicación actual: Hostinger → https://limitlesstudio.com
+
+- **Hosting:** plan Hostinger «Unlimited», con SSL (Let's Encrypt) y CDN activos.
+- **Cómo se publica:** `npm run build` → comprimir `dist/` (con `index.html` y `.htaccess` en la raíz) → subirlo al hosting → «deploy static site archive». Así se hizo el 15-11-2026.
+- **`public/.htaccess`:** HTTPS obligatorio, www → sin www, caché de un año para `/frames`, `/audio`, `/vendor` y `/assets`, y cabeceras de seguridad.
+- **Caché del CDN:** `/js` y `/css` llevan `?v=<fecha de build>`, que cambia en cada publicación, para que el CDN no sirva versiones viejas.
+- **`.env.production`:** `VITE_SITE_URL=https://limitlesstudio.com`. Para el lanzamiento oficial, pon `VITE_ALLOW_INDEXING=true` y vuelve a publicar.
+- **Formulario:** el endpoint `/api/lead` es para Vercel o Netlify y **no funciona en Hostinger**. Allí el formulario sigue en modo demostración hasta configurar un email (`VITE_CONTACT_EMAIL`) o un endpoint propio.
+
+## Despliegue alternativo (Vercel o Netlify)
 
 1. Sube el proyecto a GitHub e impórtalo. Vercel detecta Vite automáticamente; en Netlify, `netlify.toml` ya define el build, la carpeta `dist` y las funciones.
 2. Añade las variables de `.env.example`. Las `VITE_` se leen al compilar, así que hay que volver a desplegar tras cambiarlas.
