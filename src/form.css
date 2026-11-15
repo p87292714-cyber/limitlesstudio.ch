@@ -2,6 +2,13 @@
 /* Preise: Pilotpreis + regulärer Preis */
 .pilot-note { margin: 1.2rem auto 0; text-align: center; font-size: .92rem; color: var(--text) !important; }
 .pilot-note b { color: var(--lime); }
+/* Rechner: Erklärung der Marge und Rechenweg */
+.sl .l-ticket, .sl .l-ticket i { font-style: normal; }
+.sl .sl-hint { display: block; margin-top: .25rem; font-size: .74rem; color: var(--muted); letter-spacing: 0; text-transform: none; }
+.calc-out .calc-formula { list-style: none; margin: .4rem 0 0; padding: .9rem 1rem; display: grid; gap: .55rem; border: 1px solid rgba(243,246,239,.1); border-radius: 6px; background: rgba(5,7,10,.45); }
+.calc-out .calc-formula li { display: flex; flex-direction: column; gap: .15rem; border: 0; padding: 0; }
+.calc-out .calc-formula span { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.calc-out .calc-formula code { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .85rem; color: var(--text); overflow-wrap: anywhere; }
 .plan .regular { margin-top: .35rem; font-size: .8rem; color: var(--muted) !important; }
 /* Im Rechner gewähltes Paket klar beschriften (sonst wirkt es wie das «Top-Paket») */
 .plan.is-match::after { content: "Im Rechner gewählt"; position: absolute; left: 1.2rem; top: -.7rem; padding: .2rem .55rem; font-size: .62rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--lime); background: var(--bg); border: 1px solid var(--lime); border-radius: 2px; }

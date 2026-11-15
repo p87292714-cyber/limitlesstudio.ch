@@ -258,9 +258,9 @@
             </div>
             <p class="tiny" id="calc-kpi">KPI: Zusätzliche Gedecke pro Woche und online verkaufte Gutscheine.</p>
             <label class="sl"><span>Neue oder zurückgewonnene Kunden / Monat <b id="o-clients">20</b></span><input type="range" id="c-clients" min="1" max="40" value="20"></label>
-            <label class="sl"><span><span id="l-ticket">Durchschnittsbon</span> (CHF) <b id="o-ticket">50</b></span><input type="range" id="c-ticket" min="15" max="120" step="5" value="50"></label>
+            <label class="sl"><span><i class="l-ticket"><i id="l-ticket">Durchschnittsbon</i> (CHF)</i> <b id="o-ticket">50</b></span><input type="range" id="c-ticket" min="15" max="120" step="5" value="50"></label>
             <label class="sl"><span>Besuche pro Kunde / Monat <b id="o-visits">1</b></span><input type="range" id="c-visits" min="1" max="2" value="1"></label>
-            <label class="sl"><span>Deckungsbeitrag (%) <b id="o-margin">65</b></span><input type="range" id="c-margin" min="20" max="80" step="5" value="65"></label>
+            <label class="sl"><span>Marge nach Warenkosten (%) <b id="o-margin">65</b></span><small class="sl-hint">Was Ihnen von 100 CHF Umsatz nach Waren- und Materialkosten bleibt.</small><input type="range" id="c-margin" min="20" max="80" step="5" value="65"></label>
             <div class="seg" id="c-fee" role="group" aria-label="Paket (Pilotpreis)">
               <button type="button" data-fee="525" class="is-on">Starter 525</button>
               <button type="button" data-fee="1130">Growth 1'130</button>
@@ -269,9 +269,10 @@
           </div>
           <div class="calc-out">
             <div><span>Geschätzter Zusatzumsatz / Monat</span><b id="r-rev">–</b></div>
-            <div><span>Davon Deckungsbeitrag</span><b id="r-con">–</b></div>
+            <div><span>Davon bleibt Ihnen (Marge)</span><b id="r-con">–</b></div>
             <div class="big"><span>Netto nach Paket</span><b id="r-net">–</b></div>
             <div><span>Kunden / Monat, um das Paket zu decken</span><b id="r-be">–</b></div>
+            <ol class="calc-formula" id="calc-formula" aria-live="polite"></ol>
             <p class="tiny">Beispielwerte je Branche – passen Sie sie an Ihren Betrieb an. Schätzung, kein Versprechen. Paket zum Pilotpreis, exkl. MWST.</p>
           </div>
         </div>

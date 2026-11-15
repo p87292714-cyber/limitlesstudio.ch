@@ -92,6 +92,28 @@ function calcSectors() {
   apply(Math.max(0, chips.findIndex((b) => b.classList.contains('is-on'))));
 }
 
+/* Rechner: die Rechnung Schritt für Schritt zeigen (gleiche Formel wie sections.js) */
+function calcFormula() {
+  const out = document.getElementById('calc-formula');
+  if (!out) return;
+  const chf = (n) => (n < 0 ? '−' : '') + 'CHF ' + Math.round(Math.abs(n)).toLocaleString('de-CH');
+  const num = (n) => Math.round(n).toLocaleString('de-CH');
+  const val = (id) => +document.getElementById('c-' + id).value;
+  const update = () => {
+    const c = val('clients'), t = val('ticket'), v = val('visits'), m = val('margin');
+    const fee = +(document.querySelector('#c-fee button.is-on')?.dataset.fee || 0);
+    const rev = c * t * v, con = rev * m / 100, net = con - fee;
+    out.innerHTML =
+      `<li><span>Zusatzumsatz</span><code>${num(c)} × ${num(t)} × ${num(v)} = ${chf(rev)}</code></li>` +
+      `<li><span>Davon bleibt Ihnen</span><code>${chf(rev)} × ${m} % = ${chf(con)}</code></li>` +
+      `<li><span>Netto nach Paket</span><code>${chf(con)} − ${chf(fee)} = ${chf(net)}</code></li>`;
+  };
+  document.getElementById('calc').addEventListener('input', update);
+  // nach den Klick-Handlern von sections.js (Paket) und calcSectors (Branche)
+  $$('#c-fee button, #calc-sector button').forEach((b) => b.addEventListener('click', () => setTimeout(update, 0)));
+  update();
+}
+
 /* Preise: Zeile «regulär …» wechselt mit Monatlich / Einrichtung */
 function priceRegular() {
   $$('#price-mode button').forEach((b) => b.addEventListener('click', () => {
@@ -105,5 +127,6 @@ export function initEnhance() {
   menu();
   anchorFocus();
   calcSectors();
+  calcFormula();
   priceRegular();
 }
