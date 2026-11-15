@@ -7,3 +7,4 @@ dist/
 .netlify/
 .DS_Store
 *.log
+deploy-limitless.zip

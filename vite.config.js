@@ -35,7 +35,20 @@ function indexing(env) {
   };
 }
 
+// Cache-Busting: Prototyp-Dateien in public/ (/js, /css) haben keinen Hash im Namen.
+// Der Hostinger-CDN cached sie 7 Tage – mit ?v=<Build-Zeit> holt jeder Besuch die neue Version.
+function cacheBust() {
+  const v = new Date().toISOString().replace(/\D/g, '').slice(0, 12);
+  return {
+    name: 'limitless-cache-bust',
+    apply: 'build',
+    transformIndexHtml(html) {
+      return html.replace(/((?:src|href)=")(\/(?:js|css)\/[^"?]+\.(?:js|css))"/g, `$1$2?v=${v}"`);
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, fileURLToPath(new URL('.', import.meta.url)), '');
-  return { plugins: [siteUrl(env), indexing(env)] };
+  return { plugins: [siteUrl(env), indexing(env), cacheBust()] };
 });
