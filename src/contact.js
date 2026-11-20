@@ -41,9 +41,20 @@ export function initContact() {
 
   const form = document.getElementById('lead-form');
   const status = document.getElementById('form-status');
+  if (!form || !status) return;
   const submit = form.querySelector('button[type=submit]');
   const mode = LEAD_ENDPOINT ? 'endpoint' : CONTACT_EMAIL ? 'email' : 'demo';
-  if (mode !== 'demo') document.getElementById('demo-banner').hidden = true;
+  const banner = document.getElementById('demo-banner');
+  if (banner) {
+    banner.hidden = mode === 'endpoint';
+    if (mode === 'email') {
+      banner.textContent = 'Nach dem Ausfüllen öffnet sich Ihr E-Mail-Programm. Senden Sie die Anfrage dort ab.';
+    }
+  }
+  if (!submit) return;
+  const submitLabel = mode === 'email' ? 'Anfrage per E-Mail vorbereiten' : submit.textContent;
+  submit.textContent = submitLabel;
+  let sending = false;
 
   const show = (type, text) => {
     status.hidden = false;
@@ -56,7 +67,7 @@ export function initContact() {
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!form.reportValidity()) return;
+    if (sending || !form.reportValidity()) return;
     const data = Object.fromEntries(new FormData(form));
     if (data.website) return; // Honeypot
     const payload = {
@@ -66,18 +77,25 @@ export function initContact() {
     };
 
     if (mode === 'endpoint') {
+      sending = true;
       submit.disabled = true;
+      form.setAttribute('aria-busy', 'true');
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
       submit.textContent = 'Wird gesendet …';
       try {
-        const res = await fetch(LEAD_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch(LEAD_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: controller.signal });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         form.reset();
         show('ok', 'Danke! Ihre Anfrage ist bei uns. Wir melden uns innert 48 Stunden per E-Mail.');
       } catch {
         show('error', 'Die Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es in ein paar Minuten erneut.');
       } finally {
+        clearTimeout(timeout);
+        sending = false;
+        form.removeAttribute('aria-busy');
         submit.disabled = false;
-        submit.textContent = 'Digital-Check anfordern';
+        submit.textContent = submitLabel;
       }
     } else if (mode === 'email') {
       const body = [`Name: ${payload.name}`, `Betrieb: ${payload.company}`, `E-Mail: ${payload.email}`,
