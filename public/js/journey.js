@@ -13,22 +13,12 @@
   const DURATION = 16.62; // s (letztes Fotogramm ≈ 16,625 s)
   const HERO_T = 1.25;    // diese Sekunden (≈ erster Bildschirm) werden vor dem Start geladen
 
-  /* Scroll → Videozeit, stückweise linear. [Selektor, Kante, Zeit in s]
-     top = Oberkante der Sektion oben im Viewport; end = Unterkante unten im Viewport. */
-  const ANCHORS = [
-    [null, "start", 0],
-    ["#problem", "top", 1.6],      // Hero = Intro-Gang
-    ["#problem", "end", 3.4],      // rissiger Boden hinter Problem + Quiz
-    ["#sprung", "end", 6.75],      // Energie, Absprung, Blitz-Höhepunkt
-    ["#leistungen", "top", 7.1],   // Blitz löst sich zur Erde auf
-    ["#leistungen", "end", 8.6],   // Erde von oben
-    ["#loesung", "end", 9.7],      // Annäherung → Visier
-    ["#referenz", "end", 12.3],    // Visier-Nahaufnahme hinter Ablauf + Audit
-    ["#preise", "top", 12.5],
-    ["#preise", "end", 14.8],      // Sturzflug, Eintritt in die Wolken
-    ["#faq", "end", 15.7],         // Wolken hinter Branchen + FAQ
-    ["#finale", "end", 16.3],      // grüner Nebel
-    [null, "max", DURATION],
+  // End time of each section's clip. Scroll selects the clip; the clock plays it.
+  const CLIPS = [
+    ["hero-sequence", 1.6], ["problem", 3.4], ["sprung", 7.1],
+    ["leistungen", 8.6], ["loesung", 9.7], ["ablauf", 10.8],
+    ["referenz", 12.3], ["preise", 14.8], ["branchen", 15.2],
+    ["faq", 15.7], ["finale", 16.3], ["kontakt", DURATION],
   ];
   // Standbilder bei «Bewegung reduzieren» (Zeit pro Sektion)
   const STILLS = { "hero-sequence": 0.6, problem: 2.0, sprung: 5.6, leistungen: 7.6, loesung: 9.8, ablauf: 10.6, referenz: 11.6, preise: 13.9, branchen: 15.0, faq: 15.4, finale: 16.1, kontakt: 16.5 };
@@ -49,7 +39,7 @@
   const shotP = params.has("p") ? clamp(parseFloat(params.get("p")), 0, 1) : null;
 
   const frames = new Array(SET.count);
-  const state = new Uint8Array(SET.count); // 0 = offen, 1 = angefragt, 2 = geladen
+  const state = new Uint8Array(SET.count); // 0 = offen, 1 = angefragt, 2 = geladen, 3 = fehlgeschlagen
   let points = [];            // [{y, t}]
   let targetT = 0, curT = 0, drawnIdx = -1, drawnBitmap = false, lastY = 0, vel = 0, dir = 1;
   let lenis = null;
@@ -114,7 +104,7 @@
   function render() {
     const i = idxOf(curT);
     // 1) exaktes Bitmap, 2) nächstes Bitmap (±3), 3) erst zuletzt das <img>
-    const b = useBitmaps ? nearestBitmap(i) : -1;
+    const b = useBitmaps ? (state[i] === 2 ? (bitmaps.has(i) ? i : -1) : nearestBitmap(i)) : -1;
     if (b >= 0) {
       if (b === drawnIdx && drawnBitmap) return;
       drawBitmap(bitmaps.get(b));
@@ -176,7 +166,7 @@
       const img = new Image();
       img.decoding = "async";
       img.onload = () => { frames[i] = img; state[i] = 2; res(); };
-      img.onerror = () => { state[i] = 0; res(); };
+      img.onerror = () => { state[i] = 3; res(); };
       img.src = urlOf(i);
     });
   }
@@ -196,9 +186,9 @@
     let q = 0;
     const next = () => {
       // Vorrang: fehlende Bilder nahe der aktuellen Position
-      const w = idxOf(targetT);
+      const w = idxOf(curT);
       for (let d = 0; d <= 10; d++) {
-        for (const i of [w + d, w - d]) if (i >= 0 && i < SET.count && state[i] === 0) return i;
+        for (const i of [w + dir * d, w - dir * d]) if (i >= 0 && i < SET.count && state[i] === 0) return i;
       }
       while (q < order.length && state[order[q]] !== 0) q++;
       return q < order.length ? order[q] : -1;
@@ -212,33 +202,32 @@
     const host = el.parentElement && el.parentElement.classList.contains("pin-spacer") ? el.parentElement : el;
     return host.getBoundingClientRect().top + scrollY;
   }
-  function docH(el) {
-    const host = el.parentElement && el.parentElement.classList.contains("pin-spacer") ? el.parentElement : el;
-    return host.offsetHeight;
-  }
   function computePoints() {
-    const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
-    let prev = -1;
-    points = ANCHORS.map(([sel, edge, t]) => {
-      let y = 0;
-      if (edge === "max") y = max;
-      else if (sel) {
-        const el = $(sel);
-        const top = docTop(el), h = docH(el);
-        y = edge === "top" ? top : top + Math.max(h - innerHeight, h * 0.6);
-      }
-      y = clamp(y, prev + 1, max); prev = y;
-      return { y, t };
-    });
+    const max = Math.max(0, document.documentElement.scrollHeight - innerHeight);
+    points = CLIPS.map(([id, t], index) => ({
+      y: index === 0 ? Math.min(24, max) : clamp(docTop(document.getElementById(id)) - innerHeight * 0.55, 0, max),
+      t,
+    }));
   }
-  function timeAt(y) {
-    if (!points.length) return 0;
-    if (y <= points[0].y) return points[0].t;
-    for (let k = 1; k < points.length; k++) {
-      const a = points[k - 1], b = points[k];
-      if (y <= b.y) return a.t + (b.t - a.t) * ((y - a.y) / (b.y - a.y));
+
+  function clipEndAt(y) {
+    if (y <= 0) return 0;
+    let end = 0;
+    for (const point of points) {
+      if (y < point.y) break;
+      end = point.t;
     }
-    return points[points.length - 1].t;
+    return end;
+  }
+
+  // Deterministic still for the existing screenshot/inspection mode.
+  function previewTimeAt(y) {
+    let previous = { y: 0, t: 0 };
+    for (const point of points) {
+      if (y < point.y) return previous.t + (point.t - previous.t) * (y - previous.y) / (point.y - previous.y);
+      previous = point;
+    }
+    return previous.t;
   }
 
   /* ---------- Hero-Texte ---------- */
@@ -278,15 +267,20 @@
     if (ch !== lastCh) { lastCh = ch; hudLinks.forEach((a, k) => a.classList.toggle("is-on", k === ch)); document.body.dataset.chapter = ch; }
   }
 
-  function tick() {
+  function tick(_time, deltaMs) {
     const y = scrollY;
     const dy = y - lastY; lastY = y;
-    if (dy) dir = dy > 0 ? 1 : -1;
     vel += (dy - vel) * 0.25;
     if (Math.abs(vel) < 0.01) vel = 0;
-    targetT = timeAt(y);
+    targetT = shotP === null ? clipEndAt(y) : previewTimeAt(y);
     const d = targetT - curT;
-    curT = Math.abs(d) < 0.002 ? targetT : curT + d * (isMobile ? 0.22 : 0.3);
+    if (d) {
+      dir = Math.sign(d);
+      // Catch up after a menu jump, but play neighbouring clips at their native pace.
+      const speed = clamp(Math.abs(d) / 3.8, 1, 4);
+      const step = Math.min(Math.max(deltaMs, 0), 100) / 1000 * speed;
+      curT = Math.abs(d) <= step ? targetT : curT + dir * step;
+    }
     window.__journey.t = curT; window.__journey.vel = vel;
     pumpBitmaps();
     render(); // darf weiterlaufen: zeichnet nur, wenn ein besseres Bild bereit ist
@@ -396,8 +390,9 @@
     if (shotP !== null) {
       const y = shotP * (document.documentElement.scrollHeight - innerHeight);
       if (lenis) lenis.scrollTo(y, { immediate: true, force: true }); else scrollTo(0, y);
-      lastY = scrollY; curT = targetT = timeAt(scrollY);
+      lastY = scrollY; curT = targetT = previewTimeAt(scrollY);
     }
+    if (shotP === null && scrollY > 0) curT = targetT = clipEndAt(scrollY);
     render(); updateFx(curT); updateOverlays(true);
     gsap.ticker.add(tick);
     loadRest();
