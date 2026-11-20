@@ -1,0 +1,70 @@
+name: Verify and package Hostinger site
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/journey-hostinger]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci && npm run build
+      - name: Check built pages and media
+        run: |
+          test -s dist/index.html && test -s dist/.htaccess
+          for page in impressum datenschutz; do test -s "dist/$page.html"; done
+          for set in desktop mobile; do
+            n=400; if [ "$set" = mobile ]; then n=200; fi
+            for i in $(seq 1 "$n"); do test -s "dist/frames/$set/$(printf '%04d' "$i").webp"; done
+          done
+      - name: Verify playback in Chromium
+        run: |
+          npm install --prefix "$RUNNER_TEMP/qa" playwright-core@1.55.0
+          npm run preview -- --port 4173 > "$RUNNER_TEMP/vite.log" 2>&1 &
+          for i in {1..30}; do curl -fsS localhost:4173 -o /dev/null && break; sleep 1; done
+          cd "$RUNNER_TEMP/qa"
+          node --input-type=module <<'JS'
+          import { chromium } from 'playwright-core';
+          import assert from 'node:assert/strict';
+          const browser = await chromium.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox'] });
+          try {
+            for (const width of [390, 1440]) {
+              const page = await browser.newPage({ viewport: { width, height: 844 } });
+              const errors = [];
+              page.on('pageerror', error => errors.push(error.message));
+              await page.goto('http://localhost:4173');
+              await page.waitForSelector('body.is-ready');
+              const state = () => window.__journeyDebug();
+              await page.waitForFunction(() => window.__journeyDebug().loaded === window.__journeyDebug().count, null, {timeout: 60000});
+              const points = await page.evaluate(state).then(s => s.points);
+              assert.equal(points.length, 12);
+              for (const point of [...points, ...points.slice(0,-1).reverse(), {y:0,t:0}]) {
+                const start = (await page.evaluate(state)).curT;
+                await page.evaluate(y => window.__lenis ? window.__lenis.scrollTo(y, {immediate:true}) : window.scrollTo(0,y), Math.ceil(point.y));
+                await page.waitForFunction(({start,t}) => {
+                  const s=window.__journeyDebug();
+                  return s.targetT === t && Math.abs(s.curT-start)>0.005 && Math.abs(s.curT-t)>0.015;
+                }, {start,t:point.t}, {timeout:3500});
+                await page.waitForFunction(t => {
+                  const s=window.__journeyDebug();
+                  return s.curT===t && s.drawnIdx===Math.round(t*(s.count===400?24:12));
+                },point.t,{timeout:8000});
+              }
+              assert.equal(await page.locator('#lead-form button[type=submit]').textContent(),'Anfrage per E-Mail vorbereiten');
+              assert.deepEqual(errors,[]);
+              await page.close();
+            }
+          } finally { await browser.close(); }
+          JS
+      - name: Package static site including .htaccess
+        run: cd dist && zip -q -r ../limitless-hostinger.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hostinger-package
+          path: limitless-hostinger.zip
