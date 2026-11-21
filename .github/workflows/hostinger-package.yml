@@ -136,6 +136,8 @@ jobs:
               await more.locator('summary').click();
               assert.ok(await more.getAttribute('open') !== null);
               await more.locator('summary').click();
+              await move(0);
+              await settled(points[0].t);
               await page.locator('.hero-copy a[href="#anfrage"]').click();
               await page.waitForTimeout(2000);
               assert.ok(await page.locator('#lead-form').isVisible());
