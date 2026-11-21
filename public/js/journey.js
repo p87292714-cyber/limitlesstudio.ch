@@ -15,15 +15,13 @@
 
   // End time of each section's clip. Scroll selects the clip; the clock plays it.
   const CLIPS = [
-    ["hero-sequence", 1.6], ["problem", 3.4], ["sprung", 7.1],
-    ["leistungen", 8.6], ["loesung", 9.7], ["ablauf", 10.8],
-    ["referenz", 12.3], ["preise", 14.8], ["branchen", 15.2],
-    ["faq", 15.7], ["finale", 16.3], ["kontakt", DURATION],
+    ["hero-sequence", 1.6], ["leistungen", 8.6], ["ablauf", 10.8],
+    ["preise", 14.8], ["kontakt", DURATION],
   ];
   // Standbilder bei «Bewegung reduzieren» (Zeit pro Sektion)
   const STILLS = { "hero-sequence": 0.6, problem: 2.0, sprung: 5.6, leistungen: 7.6, loesung: 9.8, ablauf: 10.6, referenz: 11.6, preise: 13.9, branchen: 15.0, faq: 15.4, finale: 16.1, kontakt: 16.5 };
   // Kapitel für das HUD (Startzeit in s)
-  const CHAPTERS = [0, 4.5, 7.0, 9.4, 12.4, 15.6];
+  const CHAPTERS = [0, 7.0, 9.4, 12.4, 15.6];
 
   const canvas = $("#bg-canvas");
   const ctx = canvas.getContext("2d", { alpha: false });

@@ -42,10 +42,20 @@ jobs:
               page.on('pageerror', error => errors.push(error.message));
               await page.goto('http://localhost:4173');
               await page.waitForSelector('body.is-ready');
+              assert.equal(await page.locator('main > section').count(), 5);
+              assert.equal(await page.locator('.service-card').count(), 3);
+              assert.equal(await page.locator('#calc, #quiz, #ba, #sector-panel').count(), 0);
+              const deadLinks = await page.locator('a[href^="#"]').evaluateAll(links => links.map(a=>a.getAttribute('href')).filter(href=>href.length>1 && !document.querySelector(href)));
+              assert.deepEqual(deadLinks, []);
+              const heroCta = page.locator('.hero-copy a[href="#anfrage"]');
+              const box = await heroCta.boundingBox();
+              assert.ok(box && box.y > 60 && box.y + box.height < 844, JSON.stringify(box));
+              assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2));
+              await page.screenshot({ path: process.env.GITHUB_WORKSPACE + '/overview-' + width + '.png' });
               const video = page.locator('video[data-journey-video]');
               assert.match(await video.getAttribute('src'), new RegExp(width < 768 ? 'mobile' : 'desktop'));
               const points = await page.evaluate(() => window.__journeyDebug().points);
-              assert.equal(points.length, 12);
+              assert.equal(points.length, 5);
               const move = y => page.evaluate(y => window.__lenis.scrollTo(y, { immediate: true, force: true }), y);
               const settled = t => page.waitForFunction(t => {
                 const v = document.querySelector('video[data-journey-video]');
@@ -70,7 +80,7 @@ jobs:
               await move(points[2].y + 4);
               await page.waitForFunction(() => {
                 const s = window.__journeyDebug();
-                return s.curT > 4 && s.curT < 6.9;
+                return s.curT > 9 && s.curT < 10.7;
               });
               await settled(points[2].t);
               assert.ok((await video.evaluate(v => v.getVideoPlaybackQuality().totalVideoFrames)) - frames > 15);
@@ -80,8 +90,8 @@ jobs:
               await settled(points[0].t);
               const top = id => page.locator(id).evaluate(el => el.getBoundingClientRect().top + scrollY);
               const at = y => page.waitForFunction(y => Math.abs(scrollY - y) <= 3, y, { timeout: 6500 });
-              const problem = await top('#problem');
-              const jump = await top('#sprung');
+              const problem = await top('#leistungen');
+              const jump = await top('#ablauf');
               const h = await page.evaluate(() => document.documentElement.clientHeight);
               const cdp = await page.context().newCDPSession(page);
               async function gesture(down) {
@@ -122,6 +132,13 @@ jobs:
               await page.keyboard.press('PageDown');
               await at(problem);
               await cdp.detach();
+              const more = page.locator('.plan details').first();
+              await more.locator('summary').click();
+              assert.ok(await more.getAttribute('open') !== null);
+              await more.locator('summary').click();
+              await page.locator('.hero-copy a[href="#anfrage"]').click();
+              await page.waitForTimeout(2000);
+              assert.ok(await page.locator('#lead-form').isVisible());
               assert.equal(await page.locator('#lead-form button[type=submit]').textContent(),'Anfrage per E-Mail vorbereiten');
               assert.deepEqual(errors,[]);
               await page.close();
@@ -143,4 +160,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: hostinger-package
-          path: limitless-hostinger.zip
+          path: |
+            limitless-hostinger.zip
+            overview-*.png
