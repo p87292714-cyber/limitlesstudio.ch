@@ -210,6 +210,27 @@
     }));
   }
 
+  function sectionEndAt(y) {
+    let end = CLIPS[0][1];
+    for (const point of points) {
+      if (y + 0.5 < point.y) break;
+      end = point.t;
+    }
+    return end;
+  }
+
+  // A gentle camera drift keeps the resting pose alive. The text stays still.
+  function floatBackground(surface) {
+    return surface.animate([
+      { transform: "translate3d(-2px, 3px, 0) scale(1.008)" },
+      { transform: "translate3d(2px, -3px, 0) scale(1.014)" },
+    ], { duration: 3600, direction: "alternate", iterations: Infinity, easing: "ease-in-out" });
+  }
+
+  function travelRate(distance) {
+    return clamp(distance / 3.8, 1, 3);
+  }
+
   // Deterministic still for the existing screenshot/inspection mode.
   function previewTimeAt(y) {
     let previous = { y: 0, t: 0 };
@@ -262,24 +283,27 @@
     const dy = y - lastY; lastY = y;
     vel += (dy - vel) * 0.25;
     if (Math.abs(vel) < 0.01) vel = 0;
+    const previous = curT;
     if (shotP === null) {
-      const elapsed = clamp(deltaMs, 0, 100) / 1000;
-      curT += elapsed * dir;
-      if (curT >= DURATION || curT <= 0) {
-        curT = clamp(curT, 0, DURATION);
-        dir *= -1;
+      targetT = sectionEndAt(y);
+      const distance = targetT - curT;
+      if (distance) {
+        dir = Math.sign(distance);
+        const step = clamp(deltaMs, 0, 100) / 1000 * travelRate(Math.abs(distance));
+        curT = Math.abs(distance) <= step ? targetT : curT + dir * step;
       }
+      const mode = curT === targetT ? "float" : "travel";
+      if (canvas.dataset.motion !== mode) canvas.dataset.motion = mode;
     } else {
-      curT = previewTimeAt(y);
+      curT = targetT = previewTimeAt(y);
     }
-    targetT = previewTimeAt(y);
     window.__journey.t = curT; window.__journey.vel = vel;
     pumpBitmaps();
     render(); // darf weiterlaufen: zeichnet nur, wenn ein besseres Bild bereit ist
     // Seite steht still: keine DOM-Schreibzugriffe
-    if (dy === 0 && vel === 0 && !dirty) return;
+    if (dy === 0 && vel === 0 && previous === curT && !dirty) return;
     const force = dirty; dirty = false;
-    updateFx(targetT);
+    updateFx(curT);
     updateOverlays(force);
   }
 
@@ -368,7 +392,7 @@
     const video = document.createElement("video");
     video.id = canvas.id;
     video.dataset.journeyVideo = "";
-    video.loop = true;
+    video.loop = false;
     video.muted = video.defaultMuted = true;
     video.playsInline = true;
     video.setAttribute("aria-hidden", "true");
@@ -398,13 +422,59 @@
 
     ScrollTrigger.refresh();
     computePoints();
+    const drift = floatBackground(video);
+    const turn = video.duration / 2;
+    let reversed = false;
+    let lastGoal = null;
+    let failed = false;
+
+    function useFrameFallback() {
+      if (failed) return;
+      failed = true;
+      gsap.ticker.remove(updateVideoState);
+      video.removeEventListener("error", useFrameFallback);
+      drift.cancel();
+      restoreCanvas();
+      startFrames();
+    }
+
+    function updatePlayback(y) {
+      targetT = sectionEndAt(y);
+      const goal = Math.min(turn, Math.round(targetT * 24) / 24);
+      const position = () => reversed ? video.duration - video.currentTime : video.currentTime;
+      if (goal !== lastGoal) {
+        const here = clamp(position(), 0, turn);
+        const goBack = goal < here;
+        if (goBack !== reversed) {
+          reversed = goBack;
+          video.currentTime = reversed ? video.duration - here : here;
+        }
+        lastGoal = goal;
+        video.dataset.motion = "travel";
+      }
+      curT = clamp(position(), 0, turn);
+      if (video.dataset.motion === "float") return;
+      const remaining = reversed ? curT - goal : goal - curT;
+      if (remaining <= 0.012) {
+        video.pause();
+        const stop = reversed ? video.duration - goal : goal;
+        if (Math.abs(video.currentTime - stop) > 0.009) video.currentTime = stop;
+        curT = goal;
+        video.dataset.motion = "float";
+      } else {
+        const rate = Math.round(travelRate(remaining) * 10) / 10;
+        if (video.playbackRate !== rate) video.playbackRate = rate;
+        if (video.paused) video.play().catch(error => {
+          if (error.name !== "AbortError") useFrameFallback();
+        });
+      }
+    }
+
     function updateVideoState() {
       const y = scrollY;
       vel += ((y - lastY) - vel) * 0.25;
       lastY = y;
-      const clock = video.currentTime;
-      curT = Math.min(clock, Math.max(0, video.duration - clock), DURATION);
-      targetT = previewTimeAt(y);
+      updatePlayback(y);
       window.__journey.t = curT;
       window.__journey.vel = vel;
       if (isMobile) {
@@ -415,17 +485,13 @@
         const position = (pos * 100).toFixed(1) + "% center";
         if (position !== video.style.objectPosition) video.style.objectPosition = position;
       }
-      updateFx(targetT);
+      updateFx(curT);
       updateOverlays(dirty);
       dirty = false;
     }
     updateVideoState();
     gsap.ticker.add(updateVideoState);
-    video.addEventListener("error", () => {
-      gsap.ticker.remove(updateVideoState);
-      restoreCanvas();
-      startFrames();
-    }, { once: true });
+    video.addEventListener("error", useFrameFallback, { once: true });
     hidePreloader();
     return true;
   }
@@ -455,7 +521,7 @@
       if (lenis) lenis.scrollTo(y, { immediate: true, force: true }); else scrollTo(0, y);
       lastY = scrollY; curT = targetT = previewTimeAt(scrollY);
     }
-    if (shotP === null) curT = targetT = previewTimeAt(scrollY);
+    if (shotP === null) floatBackground(canvas);
     render(); updateFx(curT); updateOverlays(true);
     gsap.ticker.add(tick);
     loadRest();
