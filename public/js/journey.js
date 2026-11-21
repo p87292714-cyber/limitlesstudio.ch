@@ -210,16 +210,6 @@
     }));
   }
 
-  function clipEndAt(y) {
-    if (y <= 0) return 0;
-    let end = 0;
-    for (const point of points) {
-      if (y < point.y) break;
-      end = point.t;
-    }
-    return end;
-  }
-
   // Deterministic still for the existing screenshot/inspection mode.
   function previewTimeAt(y) {
     let previous = { y: 0, t: 0 };
@@ -272,22 +262,24 @@
     const dy = y - lastY; lastY = y;
     vel += (dy - vel) * 0.25;
     if (Math.abs(vel) < 0.01) vel = 0;
-    targetT = shotP === null ? clipEndAt(y) : previewTimeAt(y);
-    const d = targetT - curT;
-    if (d) {
-      dir = Math.sign(d);
-      // Catch up after a menu jump, but play neighbouring clips at their native pace.
-      const speed = clamp(Math.abs(d) / 3.8, 1, 4);
-      const step = Math.min(Math.max(deltaMs, 0), 100) / 1000 * speed;
-      curT = Math.abs(d) <= step ? targetT : curT + dir * step;
+    if (shotP === null) {
+      const elapsed = clamp(deltaMs, 0, 100) / 1000;
+      curT += elapsed * dir;
+      if (curT >= DURATION || curT <= 0) {
+        curT = clamp(curT, 0, DURATION);
+        dir *= -1;
+      }
+    } else {
+      curT = previewTimeAt(y);
     }
+    targetT = previewTimeAt(y);
     window.__journey.t = curT; window.__journey.vel = vel;
     pumpBitmaps();
     render(); // darf weiterlaufen: zeichnet nur, wenn ein besseres Bild bereit ist
     // Seite steht still: keine DOM-Schreibzugriffe
-    if (dy === 0 && d === 0 && vel === 0 && !dirty) return;
+    if (dy === 0 && vel === 0 && !dirty) return;
     const force = dirty; dirty = false;
-    updateFx(curT);
+    updateFx(targetT);
     updateOverlays(force);
   }
 
@@ -372,6 +364,72 @@
     addEventListener("resize", () => { resize(); });
   }
 
+  async function startVideo() {
+    const video = document.createElement("video");
+    video.id = canvas.id;
+    video.dataset.journeyVideo = "";
+    video.loop = true;
+    video.muted = video.defaultMuted = true;
+    video.playsInline = true;
+    video.setAttribute("aria-hidden", "true");
+    video.style.objectFit = "cover";
+    video.poster = "/poster.webp";
+    video.src = "/js/flight-" + (isMobile ? "mobile" : "desktop") + "-v1.mp4";
+    canvas.replaceWith(video);
+
+    let timeout;
+    function restoreCanvas() {
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+      video.replaceWith(canvas);
+    }
+    try {
+      await Promise.race([
+        video.play(),
+        new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error("Video startup timed out")), 5000); }),
+      ]);
+    } catch {
+      restoreCanvas();
+      return false;
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    ScrollTrigger.refresh();
+    computePoints();
+    function updateVideoState() {
+      const y = scrollY;
+      vel += ((y - lastY) - vel) * 0.25;
+      lastY = y;
+      const clock = video.currentTime;
+      curT = Math.min(clock, Math.max(0, video.duration - clock), DURATION);
+      targetT = previewTimeAt(y);
+      window.__journey.t = curT;
+      window.__journey.vel = vel;
+      if (isMobile) {
+        const width = video.clientWidth, height = video.clientHeight;
+        const imageWidth = Math.max(width, height * 16 / 9);
+        const focus = 0.5 + 0.15 * (1 - smooth(5.2, 6.6, curT));
+        const pos = imageWidth > width ? clamp((focus * imageWidth - width / 2) / (imageWidth - width), 0, 1) : 0.5;
+        const position = (pos * 100).toFixed(1) + "% center";
+        if (position !== video.style.objectPosition) video.style.objectPosition = position;
+      }
+      updateFx(targetT);
+      updateOverlays(dirty);
+      dirty = false;
+    }
+    updateVideoState();
+    gsap.ticker.add(updateVideoState);
+    video.addEventListener("error", () => {
+      gsap.ticker.remove(updateVideoState);
+      restoreCanvas();
+      startFrames();
+    }, { once: true });
+    hidePreloader();
+    return true;
+  }
+
   async function init() {
     resize();
     if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") { console.warn("GSAP fehlt"); }
@@ -383,6 +441,11 @@
     setupFocus();
     addEventListener("resize", () => { resize(); }); // ScrollTrigger refresht selbst (mit Debounce)
 
+    if (shotP === null && await startVideo()) return;
+    await startFrames();
+  }
+
+  async function startFrames() {
     const t0 = performance.now();
     await loadHero((f) => { const p = Math.round(f * 100); preFill.style.width = p + "%"; prePct.textContent = p + "%"; });
     ScrollTrigger.refresh();
@@ -392,12 +455,12 @@
       if (lenis) lenis.scrollTo(y, { immediate: true, force: true }); else scrollTo(0, y);
       lastY = scrollY; curT = targetT = previewTimeAt(scrollY);
     }
-    if (shotP === null && scrollY > 0) curT = targetT = clipEndAt(scrollY);
+    if (shotP === null) curT = targetT = previewTimeAt(scrollY);
     render(); updateFx(curT); updateOverlays(true);
     gsap.ticker.add(tick);
     loadRest();
     const wait = Math.max(0, 350 - (performance.now() - t0));
-    setTimeout(hidePreloader, wait);
+    if (!document.body.classList.contains("is-ready")) setTimeout(hidePreloader, wait);
   }
 
   window.__journeyDebug = () => ({ points, curT, targetT, loaded: state.reduce((a, b) => a + (b === 2), 0), count: SET.count, set: isMobile ? "mobile" : "desktop", bitmaps: [...bitmaps.keys()].sort((a, b) => a - b), pendingBm: pendingBm.size, failedBm: failedBm.size, drawnIdx, drawnBitmap, bmSize: [bmW, bmH] });

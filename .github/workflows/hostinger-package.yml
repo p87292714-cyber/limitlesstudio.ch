@@ -14,6 +14,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Ensure H.264 encoder is available
+        run: command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
       - run: npm ci && npm run build
       - name: Check built pages and media
         run: |
@@ -40,26 +42,47 @@ jobs:
               page.on('pageerror', error => errors.push(error.message));
               await page.goto('http://localhost:4173');
               await page.waitForSelector('body.is-ready');
-              const state = () => window.__journeyDebug();
-              await page.waitForFunction(() => window.__journeyDebug().loaded === window.__journeyDebug().count, null, {timeout: 60000});
-              const points = await page.evaluate(state).then(s => s.points);
-              assert.equal(points.length, 12);
-              for (const point of [...points, ...points.slice(0,-1).reverse(), {y:0,t:0}]) {
-                const start = (await page.evaluate(state)).curT;
-                await page.evaluate(y => window.__lenis ? window.__lenis.scrollTo(y, {immediate:true}) : window.scrollTo(0,y), Math.ceil(point.y));
-                await page.waitForFunction(({start,t}) => {
-                  const s=window.__journeyDebug();
-                  return s.targetT === t && Math.abs(s.curT-start)>0.005 && Math.abs(s.curT-t)>0.015;
-                }, {start,t:point.t}, {timeout:3500});
-                await page.waitForFunction(t => {
-                  const s=window.__journeyDebug();
-                  return s.curT===t && s.drawnIdx===Math.round(t*(s.count===400?24:12));
-                },point.t,{timeout:8000});
-              }
+              const video = page.locator('video[data-journey-video]');
+              assert.match(await video.getAttribute('src'), new RegExp(width < 768 ? 'mobile' : 'desktop'));
+              // Measure presented frames inside every section, including a slow scroll
+              // after the old section clip would have finished. Also cross the loop seam.
+              const result = await page.evaluate(async () => {
+                const v = document.querySelector('video[data-journey-video]');
+                const points = window.__journeyDebug().points;
+                const move = y => window.__lenis ? window.__lenis.scrollTo(y, { immediate: true }) : scrollTo(0, y);
+                const wait = ms => new Promise(done => setTimeout(done, ms));
+                const sample = async (y, steps) => {
+                  move(y);
+                  const before = v.getVideoPlaybackQuality().totalVideoFrames;
+                  for (let i = 0; i < steps; i++) { move(y + i * 2); await wait(90); }
+                  return v.getVideoPlaybackQuality().totalVideoFrames - before;
+                };
+                const samples = [];
+                for (const point of points) samples.push(await sample(point.y + 10, 5));
+                samples.push(await sample(points[1].y + 70, 55));
+                v.currentTime = v.duration - 0.4;
+                await new Promise(done => v.addEventListener('seeked', done, { once: true }));
+                await wait(950);
+                return { samples, looped: v.currentTime < 2 && !v.paused, sections: points.length };
+              });
+              assert.equal(result.sections, 12);
+              assert.ok(result.looped);
+              assert.ok(result.samples.every(n => n >= 3), JSON.stringify(result));
+              assert.ok(result.samples.at(-1) > 60);
               assert.equal(await page.locator('#lead-form button[type=submit]').textContent(),'Anfrage per E-Mail vorbereiten');
               assert.deepEqual(errors,[]);
               await page.close();
             }
+            const reduced = await browser.newPage({ reducedMotion: 'reduce' });
+            await reduced.goto('http://localhost:4173');
+            await reduced.waitForSelector('body.is-reduced.is-ready');
+            assert.equal(await reduced.locator('video[data-journey-video]').count(), 0);
+            const fallback = await browser.newPage();
+            await fallback.route('**/flight-*.mp4', route => route.abort());
+            await fallback.goto('http://localhost:4173');
+            await fallback.waitForSelector('body.is-ready');
+            await fallback.waitForFunction(() => window.__journeyDebug().drawnIdx > 5);
+            assert.equal(await fallback.locator('#bg-canvas').evaluate(el => el.tagName), 'CANVAS');
           } finally { await browser.close(); }
           JS
       - name: Package static site including .htaccess

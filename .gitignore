@@ -8,3 +8,4 @@ dist/
 .DS_Store
 *.log
 deploy-limitless.zip
+public/js/flight-*-v1.mp4
