@@ -8,6 +8,8 @@
   },
   "scripts": {
     "dev": "vite --host 0.0.0.0",
+    "predev": "node scripts/build-flight.mjs",
+    "prebuild": "node scripts/build-flight.mjs",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0"
   },

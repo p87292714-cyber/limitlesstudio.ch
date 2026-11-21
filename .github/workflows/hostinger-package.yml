@@ -1,0 +1,102 @@
+name: Verify and package Hostinger site
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/journey-hostinger]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Ensure H.264 encoder is available
+        run: command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+      - run: npm ci && npm run build
+      - name: Check built pages and media
+        run: |
+          test -s dist/index.html && test -s dist/.htaccess
+          for page in impressum datenschutz; do test -s "dist/$page.html"; done
+          for set in desktop mobile; do
+            n=400; if [ "$set" = mobile ]; then n=200; fi
+            for i in $(seq 1 "$n"); do test -s "dist/frames/$set/$(printf '%04d' "$i").webp"; done
+          done
+      - name: Verify playback in Chromium
+        run: |
+          npm install --prefix "$RUNNER_TEMP/qa" playwright-core@1.55.0
+          npm run preview -- --port 4173 > "$RUNNER_TEMP/vite.log" 2>&1 &
+          for i in {1..30}; do curl -fsS localhost:4173 -o /dev/null && break; sleep 1; done
+          cd "$RUNNER_TEMP/qa"
+          node --input-type=module <<'JS'
+          import { chromium } from 'playwright-core';
+          import assert from 'node:assert/strict';
+          const browser = await chromium.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox'] });
+          try {
+            for (const width of [390, 1440]) {
+              const page = await browser.newPage({ viewport: { width, height: 844 } });
+              const errors = [];
+              page.on('pageerror', error => errors.push(error.message));
+              await page.goto('http://localhost:4173');
+              await page.waitForSelector('body.is-ready');
+              const video = page.locator('video[data-journey-video]');
+              assert.match(await video.getAttribute('src'), new RegExp(width < 768 ? 'mobile' : 'desktop'));
+              const points = await page.evaluate(() => window.__journeyDebug().points);
+              assert.equal(points.length, 12);
+              const move = y => page.evaluate(y => window.__lenis.scrollTo(y, { immediate: true, force: true }), y);
+              const settled = t => page.waitForFunction(t => {
+                const v = document.querySelector('video[data-journey-video]');
+                const s = window.__journeyDebug();
+                return v.paused && v.dataset.motion === 'float' && s.targetT === t && Math.abs(s.curT-t)<0.05;
+              }, t, { timeout: 10000 });
+              const pose = () => video.evaluate(v => ({ frame: v.currentTime, camera: getComputedStyle(v).transform }));
+              await settled(points[0].t);
+              for (const point of points.slice(1)) {
+                await move(Math.ceil(point.y));
+                // No more scroll events required once a section has been entered.
+                await settled(point.t);
+                const atRest = await pose();
+                await page.waitForTimeout(240);
+                const later = await pose();
+                assert.ok(Math.abs(later.frame - atRest.frame) < 0.04);
+                assert.notEqual(later.camera, atRest.camera);
+              }
+              await move(points[1].y + 4);
+              await settled(points[1].t);
+              const frames = await video.evaluate(v => v.getVideoPlaybackQuality().totalVideoFrames);
+              await move(points[2].y + 4);
+              await page.waitForFunction(() => {
+                const s = window.__journeyDebug();
+                return s.curT > 4 && s.curT < 6.9;
+              });
+              await settled(points[2].t);
+              assert.ok((await video.evaluate(v => v.getVideoPlaybackQuality().totalVideoFrames)) - frames > 15);
+              await move(points[2].y + 50);
+              await settled(points[2].t);
+              await move(0);
+              await settled(points[0].t);
+              assert.equal(await page.locator('#lead-form button[type=submit]').textContent(),'Anfrage per E-Mail vorbereiten');
+              assert.deepEqual(errors,[]);
+              await page.close();
+            }
+            const reduced = await browser.newPage({ reducedMotion: 'reduce' });
+            await reduced.goto('http://localhost:4173');
+            await reduced.waitForSelector('body.is-reduced.is-ready');
+            assert.equal(await reduced.locator('video[data-journey-video]').count(), 0);
+            const fallback = await browser.newPage();
+            await fallback.route('**/flight-*.mp4', route => route.abort());
+            await fallback.goto('http://localhost:4173');
+            await fallback.waitForSelector('body.is-ready');
+            await fallback.waitForFunction(() => window.__journeyDebug().drawnIdx > 5);
+            assert.equal(await fallback.locator('#bg-canvas').evaluate(el => el.tagName), 'CANVAS');
+          } finally { await browser.close(); }
+          JS
+      - name: Package static site including .htaccess
+        run: cd dist && zip -q -r ../limitless-hostinger.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hostinger-package
+          path: limitless-hostinger.zip
