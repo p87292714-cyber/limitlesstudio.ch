@@ -37,7 +37,7 @@ jobs:
           const browser = await chromium.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox'] });
           try {
             for (const width of [390, 1440]) {
-              const page = await browser.newPage({ viewport: { width, height: 844 } });
+              const page = await browser.newPage({ viewport: { width, height: 844 }, hasTouch: width < 768 });
               const errors = [];
               page.on('pageerror', error => errors.push(error.message));
               await page.goto('http://localhost:4173');
@@ -78,6 +78,50 @@ jobs:
               await settled(points[2].t);
               await move(0);
               await settled(points[0].t);
+              const top = id => page.locator(id).evaluate(el => el.getBoundingClientRect().top + scrollY);
+              const at = y => page.waitForFunction(y => Math.abs(scrollY - y) <= 3, y, { timeout: 6500 });
+              const problem = await top('#problem');
+              const jump = await top('#sprung');
+              const h = await page.evaluate(() => document.documentElement.clientHeight);
+              const cdp = await page.context().newCDPSession(page);
+              async function gesture(down) {
+                if (width >= 768) { await page.mouse.wheel(0, down ? 140 : -140); return; }
+                const start = down ? 570 : 360;
+                const touch = (type, y) => cdp.send('Input.dispatchTouchEvent', {
+                  type, touchPoints: y === null ? [] : [{ x: 85, y }],
+                });
+                await touch('touchStart', start);
+                for (let i = 1; i <= 6; i++) {
+                  await touch('touchMove', start + (down ? -1 : 1) * i * 20);
+                  await page.waitForTimeout(35);
+                }
+                await page.waitForTimeout(120);
+                await touch('touchEnd', null);
+              }
+              await gesture(true);
+              await at(problem);
+              await page.waitForTimeout(250);
+              await gesture(false);
+              await at(0);
+              // Inside a long section, an ordinary gesture must leave its content readable.
+              const middle = (problem + jump - h) / 2;
+              if (jump - problem > h + 650) {
+                await move(middle);
+                await gesture(true);
+                await page.waitForTimeout(1500);
+                assert.ok(await page.evaluate(({middle,jump,h}) => scrollY > middle + 10 && scrollY < jump-h, {middle,jump,h}));
+              }
+              // Release while the viewport straddles two sections in either direction.
+              await move(jump - h + 4);
+              await gesture(true);
+              await at(jump);
+              await page.waitForTimeout(250);
+              await gesture(false);
+              await at(jump - h);
+              await move(0);
+              await page.keyboard.press('PageDown');
+              await at(problem);
+              await cdp.detach();
               assert.equal(await page.locator('#lead-form button[type=submit]').textContent(),'Anfrage per E-Mail vorbereiten');
               assert.deepEqual(errors,[]);
               await page.close();

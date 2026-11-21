@@ -372,6 +372,98 @@
     });
   }
 
+  function setupSectionSnap() {
+    const sections = CLIPS.map(([id]) => document.getElementById(id));
+    const footer = document.querySelector("footer");
+    let timer, intent = 0, nativeMotion = false, touching = false;
+    let touchX = 0, touchY = 0;
+
+    // Intervals contain the positions where a whole section can be read.
+    // The sticky cinematic scenes have one landing each; keep pin spacers
+    // in the Services section so every horizontal card remains reachable.
+    function landing(y, direction) {
+      const height = document.documentElement.clientHeight;
+      const limit = Math.max(0, document.documentElement.scrollHeight - height);
+      const top = sections.map(docTop);
+      const footerTop = footer ? docTop(footer) : limit + height;
+      let previousEnd = 0;
+      for (let i = 0; i < sections.length; i++) {
+        const section = sections[i];
+        let start = clamp(top[i], 0, limit);
+        let end = clamp((top[i + 1] ?? footerTop) - height, start, limit);
+        if (section === hero || section.classList.contains("gap")) {
+          // In Finale the call to action appears partway through the sticky scene.
+          const fraction = section.id === "finale" ? 0.35 : section.id === "loesung" ? 0.22 : 0;
+          start = end = start + (end - start) * fraction;
+        }
+        if (y < start - 2) return direction > 0 ? start : previousEnd;
+        if (y <= end + 2) return null;
+        previousEnd = end;
+      }
+      return direction > 0 ? limit : previousEnd;
+    }
+
+    function cancel() {
+      clearTimeout(timer);
+      intent = 0;
+    }
+    function settle() {
+      if (!intent || touching) return;
+      const y = lenis && !nativeMotion ? lenis.targetScroll : scrollY;
+      const destination = landing(y, intent);
+      cancel();
+      if (destination === null || Math.abs(y - destination) <= 2) return;
+      if (lenis) lenis.scrollTo(destination, { duration: 0.68, easing: t => 1 - (1 - t) ** 3 });
+      else window.scrollTo({ top: destination, behavior: reduce ? "instant" : "smooth" });
+    }
+    function schedule() {
+      clearTimeout(timer);
+      if (intent && !touching) timer = setTimeout(settle, 140);
+    }
+    function editable(target) {
+      return target instanceof Element && target.closest("input, textarea, select, [contenteditable='true'], [data-lenis-prevent]");
+    }
+    addEventListener("wheel", event => {
+      if (event.ctrlKey || editable(event.target) || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+      nativeMotion = !lenis;
+      intent = Math.sign(event.deltaY);
+      schedule();
+    }, { passive: true });
+    addEventListener("touchstart", event => {
+      cancel();
+      touching = event.touches.length === 1 && !editable(event.target);
+      if (touching) {
+        touchX = event.touches[0].clientX;
+        touchY = event.touches[0].clientY;
+      }
+    }, { passive: true });
+    addEventListener("touchmove", event => {
+      if (!touching || event.touches.length !== 1) { cancel(); return; }
+      const touch = event.touches[0];
+      const dy = touchY - touch.clientY;
+      if (Math.abs(dy) < 4 || Math.abs(dy) <= Math.abs(touchX - touch.clientX)) return;
+      intent = Math.sign(dy);
+      nativeMotion = true;
+      touchX = touch.clientX;
+      touchY = touch.clientY;
+    }, { passive: true });
+    addEventListener("touchend", () => { touching = false; schedule(); }, { passive: true });
+    addEventListener("touchcancel", () => { touching = false; cancel(); }, { passive: true });
+    addEventListener("scroll", () => { if (nativeMotion && intent) schedule(); }, { passive: true });
+    addEventListener("keydown", event => {
+      if (event.altKey || event.ctrlKey || event.metaKey || editable(event.target)) return;
+      if (event.key === "Home" || event.key === "End" || event.key === "Tab") { cancel(); return; }
+      if (event.key === " " && event.target.closest?.("button, a, summary")) return;
+      if (!["ArrowUp", "ArrowDown", "PageUp", "PageDown", " "].includes(event.key)) return;
+      nativeMotion = !lenis;
+      intent = event.key.endsWith("Up") || (event.key === " " && event.shiftKey) ? -1 : 1;
+      schedule();
+    });
+    addEventListener("pointerdown", cancel, { passive: true });
+    addEventListener("hashchange", cancel);
+    addEventListener("resize", cancel);
+  }
+
   async function initReduced() {
     document.body.classList.add("is-reduced");
     hidePreloader();
@@ -500,6 +592,7 @@
     resize();
     if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") { console.warn("GSAP fehlt"); }
     gsap.registerPlugin(ScrollTrigger);
+    if (shotP === null) setupSectionSnap();
     if (reduce && shotP === null) return initReduced();
 
     setupLenis();
